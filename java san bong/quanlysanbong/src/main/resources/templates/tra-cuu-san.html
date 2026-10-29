@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra Cứu & Đặt Sân Bóng - PTIT Football</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar-custom { background-color: #198754; }
+        .card-san { border: none; border-radius: 12px; }
+        .btn-slot { border-radius: 8px; font-size: 0.88rem; transition: all 0.2s; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark navbar-custom px-4 shadow-sm mb-4">
+        <a class="navbar-brand fw-bold fs-4" href="/">⚽ SÂN BÓNG ĐÁ MINI</a>
+        <div>
+            <a href="/profile" class="btn btn-light btn-sm fw-bold me-2 text-success">👤 Tài Khoản Cá Nhân</a>
+            <a href="/logout" class="btn btn-outline-light btn-sm fw-bold">Đăng xuất</a>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show fw-bold" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card p-3 shadow-sm mb-4 border-0">
+            <form action="/tra-cuu-san" method="get" class="row g-3 align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-success m-0">📅 Chọn Ngày Đá Bóng:</label>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" id="inputNgay" name="ngay" class="form-control" th:value="${ngayChon}" onchange="this.form.submit()"/>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-success fw-bold px-4">Tra Cứu Lịch</button>
+                </div>
+            </form>
+        </div>
+
+        <h4 class="fw-bold text-dark mb-3">DANH SÁCH SÂN & CÁC KHUNG GIỜ NGÀY <span class="text-success" th:text="${ngayChon}">2026-10-19</span></h4>
+
+        <div class="row g-4">
+            <div class="col-lg-6" th:each="sb : ${danhSachSan}">
+                <div class="card card-san shadow-sm p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="fw-bold text-primary m-0" th:text="${sb.tenSan}">Sân Số 1</h5>
+                        <span class="badge bg-secondary" th:text="${sb.loaiSan}">Sân 7 người</span>
+                    </div>
+                    <hr class="my-2"/>
+                    
+                    <p class="text-muted small mb-2 fw-bold">☀️ Khung Giờ Sáng & Chiều:</p>
+                    <div class="row g-2 mb-3">
+                        <!-- 06:00 - 07:30 -->
+                        <div class="col-6" th:with="isBooked=${#lists.contains(danhSachDaDatKey, sb.maSan.trim() + '_06:00') or #lists.contains(danhSachDaDatKey, sb.tenSan.trim() + '_06:00')}">
+                            <button type="button" 
+                                    th:class="${isBooked ? 'btn btn-secondary btn-slot w-100 text-start d-flex justify-content-between' : 'btn btn-outline-success btn-slot w-100 text-start d-flex justify-content-between'}"
+                                    th:disabled="${isBooked}"
+                                    th:onclick="moModalDatSan([[${sb.maSan}]], [[${sb.tenSan}]], '06:00', '07:30', 150000)">
+                                <span>🕒 06:00 - 07:30</span>
+                                <span th:class="${isBooked ? 'badge bg-danger' : 'badge bg-success'}" th:text="${isBooked ? '🔴 Đã Đặt' : '🟢 Trống'}">🟢 Trống</span>
+                            </button>
+                        </div>
+
+                        <!-- 07:30 - 09:00 -->
+                        <div class="col-6" th:with="isBooked=${#lists.contains(danhSachDaDatKey, sb.maSan.trim() + '_07:30') or #lists.contains(danhSachDaDatKey, sb.tenSan.trim() + '_07:30')}">
+                            <button type="button" 
+                                    th:class="${isBooked ? 'btn btn-secondary btn-slot w-100 text-start d-flex justify-content-between' : 'btn btn-outline-success btn-slot w-100 text-start d-flex justify-content-between'}"
+                                    th:disabled="${isBooked}"
+                                    th:onclick="moModalDatSan([[${sb.maSan}]], [[${sb.tenSan}]], '07:30', '09:00', 150000)">
+                                <span>🕒 07:30 - 09:00</span>
+                                <span th:class="${isBooked ? 'badge bg-danger' : 'badge bg-success'}" th:text="${isBooked ? '🔴 Đã Đặt' : '🟢 Trống'}">🟢 Trống</span>
+                            </button>
+                        </div>
+
+                        <!-- 15:30 - 17:00 -->
+                        <div class="col-6" th:with="isBooked=${#lists.contains(danhSachDaDatKey, sb.maSan.trim() + '_15:30') or #lists.contains(danhSachDaDatKey, sb.tenSan.trim() + '_15:30')}">
+                            <button type="button" 
+                                    th:class="${isBooked ? 'btn btn-secondary btn-slot w-100 text-start d-flex justify-content-between' : 'btn btn-outline-success btn-slot w-100 text-start d-flex justify-content-between'}"
+                                    th:disabled="${isBooked}"
+                                    th:onclick="moModalDatSan([[${sb.maSan}]], [[${sb.tenSan}]], '15:30', '17:00', 200000)">
+                                <span>🕒 15:30 - 17:00</span>
+                                <span th:class="${isBooked ? 'badge bg-danger' : 'badge bg-success'}" th:text="${isBooked ? '🔴 Đã Đặt' : '🟢 Trống'}">🟢 Trống</span>
+                            </button>
+                        </div>
+
+                        <!-- 17:00 - 18:30 -->
+                        <div class="col-6" th:with="isBooked=${#lists.contains(danhSachDaDatKey, sb.maSan.trim() + '_17:00') or #lists.contains(danhSachDaDatKey, sb.tenSan.trim() + '_17:00')}">
+                            <button type="button" 
+                                    th:class="${isBooked ? 'btn btn-secondary btn-slot w-100 text-start d-flex justify-content-between' : 'btn btn-outline-success btn-slot w-100 text-start d-flex justify-content-between'}"
+                                    th:disabled="${isBooked}"
+                                    th:onclick="moModalDatSan([[${sb.maSan}]], [[${sb.tenSan}]], '17:00', '18:30', 250000)">
+                                <span>🕒 17:00 - 18:30</span>
+                                <span th:class="${isBooked ? 'badge bg-danger' : 'badge bg-success'}" th:text="${isBooked ? '🔴 Đã Đặt' : '🟢 Trống'}">🟢 Trống</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small mb-2 fw-bold">🌙 Khung Giờ Vàng Buổi Tối:</p>
+                    <div class="row g-2">
+                        <!-- 18:30 - 20:00 -->
+                        <div class="col-6" th:with="isBooked=${#lists.contains(danhSachDaDatKey, sb.maSan.trim() + '_18:30') or #lists.contains(danhSachDaDatKey, sb.tenSan.trim() + '_18:30')}">
+                            <button type="button" 
+                                    th:class="${isBooked ? 'btn btn-secondary btn-slot w-100 text-start d-flex justify-content-between' : 'btn btn-outline-success btn-slot w-100 text-start d-flex justify-content-between'}"
+                                    th:disabled="${isBooked}"
+                                    th:onclick="moModalDatSan([[${sb.maSan}]], [[${sb.tenSan}]], '18:30', '20:00', 300000)">
+                                <span>🕒 18:30 - 20:00</span>
+                                <span th:class="${isBooked ? 'badge bg-danger' : 'badge bg-success'}" th:text="${isBooked ? '🔴 Đã Đặt' : '🟢 Trống'}">🟢 Trống</span>
+                            </button>
+                        </div>
+
+                        <!-- 20:00 - 21:30 -->
+                        <div class="col-6" th:with="isBooked=${#lists.contains(danhSachDaDatKey, sb.maSan.trim() + '_20:00') or #lists.contains(danhSachDaDatKey, sb.tenSan.trim() + '_20:00')}">
+                            <button type="button" 
+                                    th:class="${isBooked ? 'btn btn-secondary btn-slot w-100 text-start d-flex justify-content-between' : 'btn btn-outline-success btn-slot w-100 text-start d-flex justify-content-between'}"
+                                    th:disabled="${isBooked}"
+                                    th:onclick="moModalDatSan([[${sb.maSan}]], [[${sb.tenSan}]], '20:00', '21:30', 300000)">
+                                <span>🕒 20:00 - 21:30</span>
+                                <span th:class="${isBooked ? 'badge bg-danger' : 'badge bg-success'}" th:text="${isBooked ? '🔴 Đã Đặt' : '🟢 Trống'}">🟢 Trống</span>
+                            </button>
+                        </div>
+
+                        <!-- 21:30 - 23:00 -->
+                        <div class="col-12" th:with="isBooked=${#lists.contains(danhSachDaDatKey, sb.maSan.trim() + '_21:30') or #lists.contains(danhSachDaDatKey, sb.tenSan.trim() + '_21:30')}">
+                            <button type="button" 
+                                    th:class="${isBooked ? 'btn btn-secondary btn-slot w-100 text-start d-flex justify-content-between' : 'btn btn-outline-success btn-slot w-100 text-start d-flex justify-content-between'}"
+                                    th:disabled="${isBooked}"
+                                    th:onclick="moModalDatSan([[${sb.maSan}]], [[${sb.tenSan}]], '21:30', '23:00', 200000)">
+                                <span>🕒 Khung Đêm: 21:30 - 23:00</span>
+                                <span th:class="${isBooked ? 'badge bg-danger' : 'badge bg-success'}" th:text="${isBooked ? '🔴 Đã Đặt' : '🟢 Trống'}">🟢 Trống</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Popup Nhập Thông Tin Đặt Sân -->
+    <div class="modal fade" id="modalDatSan" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form action="/dat-san-user" method="post">
+              <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold">⚽ XÁC NHẬN THÔNG TIN ĐẶT SÂN</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <input type="hidden" id="maSanInput" name="maSan"/>
+                
+                <div class="mb-2">
+                    <label class="form-label fw-bold">Sân Được Chọn:</label>
+                    <input type="text" id="tenSanInput" class="form-control" readonly/>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label fw-bold">Ngày Đặt:</label>
+                    <input type="date" id="ngayDatInput" name="ngayDat" class="form-control" readonly/>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col">
+                        <label class="form-label fw-bold">Từ Giờ:</label>
+                        <input type="text" id="gioBatDauInput" name="gioBatDau" class="form-control" readonly/>
+                    </div>
+                    <div class="col">
+                        <label class="form-label fw-bold">Đến Giờ:</label>
+                        <input type="text" id="gioKetThucInput" name="gioKetThuc" class="form-control" readonly/>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label fw-bold">Họ Và Tên Người Đặt:</label>
+                    <input type="text" name="hoTenKhach" class="form-control" placeholder="Nhập họ và tên người đặt" required/>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label fw-bold">Số Điện Thoại Nhận Lịch:</label>
+                    <input type="text" name="soDienThoai" class="form-control" placeholder="Nhập SĐT để quản lý lịch" required/>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label fw-bold">Tiền Cọc (VNĐ):</label>
+                    <input type="number" id="tienCocInput" name="tienCoc" class="form-control" readonly/>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-success fw-bold">XÁC NHẬN ĐẶT LỊCH</button>
+              </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    function moModalDatSan(maSan, tenSan, gioBD, gioKT, giaTien) {
+        document.getElementById('maSanInput').value = maSan;
+        document.getElementById('tenSanInput').value = tenSan;
+        document.getElementById('gioBatDauInput').value = gioBD;
+        document.getElementById('gioKetThucInput').value = gioKT;
+        document.getElementById('ngayDatInput').value = document.getElementById('inputNgay').value;
+        document.getElementById('tienCocInput').value = giaTien || 200000;
+        
+        var modal = new bootstrap.Modal(document.getElementById('modalDatSan'));
+        modal.show();
+    }
+    </script>
+</body>
+</html>

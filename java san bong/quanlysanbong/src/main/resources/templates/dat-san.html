@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Đặt Sân - Nhóm 28</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light p-4">
+<div class="container bg-white p-4 rounded shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold">⚽ Quản Lý Lịch Đặt Sân Bóng</h2>
+        <a href="/khach-hang" class="btn btn-outline-secondary">Quản Lý Khách Hàng</a>
+    </div>
+
+    <!-- Thông báo thành công / thất bại -->
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="row">
+        <!-- FORM ĐẶT SÂN -->
+        <div class="col-md-5">
+            <div class="card p-3 shadow-sm border-primary">
+                <h5 class="card-title text-success mb-3">Tạo Lượt Đặt Sân Mới</h5>
+                <form th:action="@{/dat-san/luu}" th:object="${luotDatMoi}" method="post">
+                    
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Khách Hàng / Đội Bóng:</label>
+                        <select th:field="*{khachHang.cccdCmt}" class="form-select" required>
+                            <option value="">-- Chọn Khách Hàng --</option>
+                            <option th:each="kh : ${danhSachKhachHang}" 
+                                    th:value="${kh.cccdCmt}" 
+                                    th:text="${kh.tenDoiBong} + ' (' + ${kh.ten} + ' - UT: ' + ${kh.diemUyTin} + 'đ)'"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Chọn Sân Bóng:</label>
+                        <select th:field="*{sanBong.maSan}" class="form-select" required>
+                            <option value="">-- Chọn Sân --</option>
+                            <option th:each="sb : ${danhSachSan}" 
+                                    th:value="${sb.maSan}" 
+                                    th:text="${sb.tenSan} + ' (' + ${sb.loaiSan} + ')'"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Ngày Đặt:</label>
+                        <input type="date" th:field="*{ngayDat}" class="form-control" required/>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label fw-bold">Giờ Bắt Đầu:</label>
+                            <input type="time" th:field="*{gioBatDau}" class="form-control" required/>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label fw-bold">Giờ Kết Thúc:</label>
+                            <input type="time" th:field="*{gioKetThuc}" class="form-control" required/>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Số Tiền Cọc (VNĐ):</label>
+                        <input type="number" th:field="*{tienCoc}" class="form-control" value="0"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nhân Viên Quản Lý Xác Nhận:</label>
+                        <select th:field="*{nhanVienXacNhan.maNV}" class="form-select">
+                            <option value="">-- Chọn Nhân Viên --</option>
+                            <option th:each="nv : ${danhSachNhanVien}" 
+                                    th:value="${nv.maNV}" 
+                                    th:text="${nv.ten} + ' (' + ${nv.chucVu} + ')'"></option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-bold">📌 Xác Nhận Đặt Sân</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- BẢNG DANH SÁCH LỊCH ĐẶT -->
+        <div class="col-md-7">
+            <h5 class="text-secondary mb-3">Danh Sách Lượt Đặt Sân</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Mã</th>
+                        <th>Đội Bóng</th>
+                        <th>Sân</th>
+                        <th>Thời Gian</th>
+                        <th>Trạng Thái</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="ds : ${danhSachDatSan}">
+                        <td th:text="${ds.maLuotDat}"></td>
+                        <td th:text="${ds.khachHang.tenDoiBong}" class="fw-bold text-primary"></td>
+                        <td th:text="${ds.sanBong.tenSan}"></td>
+                        <td th:text="${ds.ngayDat} + ' (' + ${ds.gioBatDau} + ' - ' + ${ds.gioKetThuc} + ')'"></td>
+                        <td>
+                            <span class="badge bg-warning text-dark" th:text="${ds.trangThai}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
