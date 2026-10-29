@@ -1,10 +1,10 @@
-# Bước 1: Build ứng dụng Java bằng Maven
+# Bước 1: Build file JAR và bỏ qua Unit Test (-DskipTests)
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY . .
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -Dmaven.test.skip=true
 
-# Bước 2: Chạy file .jar
+# Bước 2: Khởi chạy ứng dụng
 FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
