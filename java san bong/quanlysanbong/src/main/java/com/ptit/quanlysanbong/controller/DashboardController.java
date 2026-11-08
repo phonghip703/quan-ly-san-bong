@@ -183,7 +183,7 @@ public class DashboardController {
 
             luotDatSanRepository.save(luotDat);
 
-            redirectAttributes.addFlashAttribute("success", "🎉 Đặt sân thành công! Khung giờ " + gioBatDau + " - " + gioKetThuc + " đã chuyển sang trạng thái Đã Đặt.");
+            redirectAttributes.addFlashAttribute("success", " Đặt sân thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Lỗi khi đặt sân: " + e.getMessage());
         }
