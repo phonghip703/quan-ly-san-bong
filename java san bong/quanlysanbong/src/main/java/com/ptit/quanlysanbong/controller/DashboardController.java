@@ -207,8 +207,9 @@ public class DashboardController {
         return "profile";
     }
 
+    // TRANG ADMIN: Được nâng cấp nhận tham số cccdSelect để xem chi tiết lịch sử từng khách hàng
     @GetMapping("/admin")
-    public String adminDashboard(Model model) {
+    public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
         model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
         model.addAttribute("danhSachSan", sanBongRepository.findAll());
         model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
@@ -218,7 +219,26 @@ public class DashboardController {
         model.addAttribute("khachHangMoi", new KhachHang());
         model.addAttribute("luotDatMoi", new LuotDatSan());
 
+        // Bổ sung: Nạp dữ liệu hồ sơ và danh sách các lần đặt của 1 khách hàng cụ thể khi chủ sân bấm nút "Xem Chi Tiết"
+        if (cccdSelect != null && !cccdSelect.isEmpty()) {
+            khachHangRepository.findById(cccdSelect).ifPresent(kh -> {
+                model.addAttribute("khachHangChon", kh);
+                model.addAttribute("lichSuDatCuaKhach", luotDatSanRepository.findByKhachHang_CccdCmtOrderByNgayDatDesc(cccdSelect));
+            });
+        }
+
         return "admin-dashboard";
+    }
+
+    // XỬ LÝ XÁC NHẬN THANH TOÁN CHO CHỦ SÂN
+    @PostMapping("/admin/xac-nhan")
+    public String xacNhanLuotDat(@RequestParam("maLuotDat") Long maLuotDat, RedirectAttributes redirectAttributes) {
+        luotDatSanRepository.findById(maLuotDat).ifPresent(luotDat -> {
+            luotDat.setTrangThai("DaThanhToan");
+            luotDatSanRepository.save(luotDat);
+        });
+        redirectAttributes.addFlashAttribute("success", "Ghi nhận thanh toán thành công!");
+        return "redirect:/admin";
     }
 
     @GetMapping("/logout")

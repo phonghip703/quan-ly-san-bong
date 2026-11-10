@@ -2,47 +2,179 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Trang Quản Lý Sân Bóng</title>
+    <title>Hệ Thống Quản Lý Sân Bóng - Chủ Sân</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body class="bg-light p-4">
-<div class="container-fluid bg-white p-4 rounded shadow-sm">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-danger fw-bold">🛡️ MÀN HÌNH THEO DÕI TOÀN BỘ HOẠT ĐỘNG SÂN BÓNG</h2>
-        <a href="/logout" class="btn btn-outline-secondary">Đăng xuất</a>
-    </div>
+<body class="bg-light">
+    <!-- Thanh Menu Trên Cùng -->
+    <nav class="navbar navbar-dark bg-dark p-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">⚽ HỆ THỐNG QUẢN LÝ SÂN BÓNG - ADMIN DASHBOARD</a>
+            <a href="/index" class="btn btn-outline-light btn-sm">Xem Trang Chủ Client</a>
+        </div>
+    </nav>
 
-    <div class="row text-center mb-4">
-        <div class="col-md-4"><div class="card bg-primary text-white p-3"><h5>Tổng Lượt Đặt</h5><h3>12</h3></div></div>
-        <div class="col-md-4"><div class="card bg-warning text-dark p-3"><h5>Sân Đang Đá</h5><h3>3</h3></div></div>
-        <div class="col-md-4"><div class="card bg-success text-white p-3"><h5>Doanh Thu Hôm Nay</h5><h3>3.500.000 VNĐ</h3></div></div>
-    </div>
+    <div class="container my-4">
+        <!-- Thanh Chuyển Đổi 2 Tab -->
+        <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="datsan-tab" data-bs-toggle="tab" data-bs-target="#datsan" type="button">
+                    📋 Danh Sách Đặt Sân
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="khachhang-tab" data-bs-toggle="tab" data-bs-target="#khachhang" type="button">
+                    👥 Quản Lý Khách Hàng & Lịch Sử
+                </button>
+            </li>
+        </ul>
 
-    <h5 class="fw-bold text-secondary">Tất Cả Lượt Đặt Sân Trong Hệ Thống</h5>
-    <table class="table table-striped table-bordered align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Mã</th>
-                <th>Khách Hàng / Đội Bóng</th>
-                <th>Sân</th>
-                <th>Ngày Đặt</th>
-                <th>Giờ Đá</th>
-                <th>Tiền Cọc</th>
-                <th>Trạng Thái</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="ds : ${danhSachDatSan}">
-                <td th:text="${ds.maLuotDat}"></td>
-                <td th:text="${ds.khachHang.tenDoiBong}"></td>
-                <td th:text="${ds.sanBong.tenSan}"></td>
-                <td th:text="${ds.ngayDat}"></td>
-                <td th:text="${ds.gioBatDau} + ' - ' + ${ds.gioKetThuc}"></td>
-                <td th:text="${ds.tienCoc} + ' VNĐ'"></td>
-                <td><span class="badge bg-success" th:text="${ds.trangThai}"></span></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+        <div class="tab-content" id="adminTabContent">
+            
+            <!-- TAB 1: DANH SÁCH TẤT CẢ LƯỢT ĐẶT SÂN -->
+            <div class="tab-pane fade show active" id="datsan" role="tabpanel">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-hover table-bordered align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Mã Lượt</th>
+                                    <th>Ngày Đá & Giờ</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Tên Đội</th>
+                                    <th>Tiền Cọc</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ld : ${danhSachDatSan}">
+                                    <td th:text="${'#DS' + ld.maLuotDat}" class="fw-bold">#DS1</td>
+                                    <td>
+                                        <div th:text="${ld.ngayDat}" class="fw-bold text-primary">2026-10-29</div>
+                                        <small class="badge bg-info text-dark" th:text="${ld.gioBatDau + ' - ' + ld.gioKetThuc}">06:00 - 07:30</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-capitalize" th:text="${ld.khachHang != null ? (ld.khachHang.hoTendem + ' ' + ld.khachHang.ten) : 'Chưa cập nhật'}">Hồ Ly</div>
+                                        <small class="text-muted" th:text="${'SĐT: ' + (ld.khachHang != null ? ld.khachHang.soDienThoai : 'N/A')}">012345678</small>
+                                    </td>
+                                    <td th:text="${ld.khachHang != null ? ld.khachHang.tenDoiBong : 'Không có'}">fc dau bui</td>
+                                    <td class="fw-bold text-success" th:text="${#numbers.formatDecimal(ld.tienCoc, 0, 'COMMA', 0, 'POINT') + ' đ'}">150,000 đ</td>
+                                    <td>
+                                        <span th:if="${ld.trangThai == 'DaCoc'}" class="badge bg-warning text-dark">Đã Cọc</span>
+                                        <span th:if="${ld.trangThai == 'DaThanhToan'}" class="badge bg-success">Đã Thanh Toán</span>
+                                    </td>
+                                    <td>
+                                        <form th:action="@{/admin/xac-nhan}" method="post" style="display:inline;">
+                                            <input type="hidden" name="maLuotDat" th:value="${ld.maLuotDat}"/>
+                                            <button type="submit" class="btn btn-sm btn-success" th:disabled="${ld.trangThai == 'DaThanhToan'}">
+                                                ✓ Ghi Nhận
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(danhSachDatSan)}">
+                                    <td colspan="7" class="text-center py-4 text-muted">Chưa có lượt đặt sân nào.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: QUẢN LÝ TOÀN BỘ KHÁCH HÀNG & LỊCH SỬ ĐẶT SÂN -->
+            <div class="tab-pane fade" id="khachhang" role="tabpanel">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white fw-bold">
+                        📇 DANH SÁCH TOÀN BỘ KHÁCH HÀNG HỆ THỐNG
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-bordered align-middle mb-0">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>Họ & Tên Khách</th>
+                                    <th>Tên Đội Bóng</th>
+                                    <th>Số Điện Thoại</th>
+                                    <th>Số CCCD/CMT</th>
+                                    <th>Địa Chỉ</th>
+                                    <th>Điểm Uy Tín</th>
+                                    <th>Lịch Sử Đặt Sân</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="kh : ${danhSachKhachHang}">
+                                    <td class="fw-bold text-capitalize" th:text="${kh.hoTendem + ' ' + kh.ten}">Hồ Ly</td>
+                                    <td th:text="${kh.tenDoiBong}">fc dau bui</td>
+                                    <td>
+                                        <a th:href="${'tel:' + kh.soDienThoai}" class="text-decoration-none fw-bold">
+                                            📞 <span th:text="${kh.soDienThoai}">012345678</span>
+                                        </a>
+                                    </td>
+                                    <td th:text="${kh.cccdCmt}">0123456789</td>
+                                    <td th:text="${kh.diaChi}">Hà Nội</td>
+                                    <td>
+                                        <span class="badge bg-success" th:text="${kh.diemUyTin + ' điểm'}">100 điểm</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/admin/dashboard(cccdSelect=${kh.cccdCmt})}" class="btn btn-primary btn-sm">
+                                            🔍 Xem Chi Tiết Lịch Sử
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- BẢNG HIỂN THỊ CHI TIẾT LỊCH SỬ ĐẶT SÂN KHI CHỦ SÂN BẤM CHỌN 1 KHÁCH -->
+                <div th:if="${khachHangChon != null}" class="card shadow-sm border-info">
+                    <div class="card-header bg-info text-dark fw-bold">
+                        📜 CHI TIẾT HỒ SƠ & TẤT CẢ CÁC LẦN ĐẶT SÂN CỦA KHÁCH: 
+                        <span class="text-uppercase text-danger" th:text="${khachHangChon.hoTendem + ' ' + khachHangChon.ten}"></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3 p-2 bg-light rounded">
+                            <div class="col-md-3"><strong>Tên đội:</strong> <span th:text="${khachHangChon.tenDoiBong}"></span></div>
+                            <div class="col-md-3"><strong>SĐT:</strong> <span th:text="${khachHangChon.soDienThoai}"></span></div>
+                            <div class="col-md-3"><strong>CCCD:</strong> <span th:text="${khachHangChon.cccdCmt}"></span></div>
+                            <div class="col-md-3"><strong>Điểm uy tín:</strong> <span class="badge bg-success" th:text="${khachHangChon.diemUyTin + ' điểm'}"></span></div>
+                        </div>
+
+                        <h6 class="fw-bold text-secondary mb-2">DANH SÁCH LƯỢT ĐẶT SÂN TRONG QUÁ KHỨ:</h6>
+                        <table class="table table-bordered table-sm align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã Lượt</th>
+                                    <th>Ngày Đá</th>
+                                    <th>Khung Giờ</th>
+                                    <th>Mã Sân</th>
+                                    <th>Tiền Cọc</th>
+                                    <th>Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ls : ${lichSuDatCuaKhach}">
+                                    <td th:text="${'#DS' + ls.maLuotDat}" class="fw-bold"></td>
+                                    <td th:text="${ls.ngayDat}"></td>
+                                    <td th:text="${ls.gioBatDau + ' - ' + ls.gioKetThuc}"></td>
+                                    <td th:text="${ls.maSan}"></td>
+                                    <td th:text="${#numbers.formatDecimal(ls.tienCoc, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
+                                    <td>
+                                        <span th:if="${ls.trangThai == 'DaCoc'}" class="badge bg-warning text-dark">Đã Cọc</span>
+                                        <span th:if="${ls.trangThai == 'DaThanhToan'}" class="badge bg-success">Đã Thanh Toán</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(lichSuDatCuaKhach)}">
+                                    <td colspan="6" class="text-center text-muted py-2">Khách hàng này chưa thực hiện lượt đặt sân nào.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </body>
 </html>
