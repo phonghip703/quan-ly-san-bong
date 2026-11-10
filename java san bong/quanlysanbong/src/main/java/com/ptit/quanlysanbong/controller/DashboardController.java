@@ -237,7 +237,8 @@ public class DashboardController {
     @PostMapping("/admin/xac-nhan")
     public String xacNhanLuotDat(@RequestParam("maLuotDat") Long maLuotDat, RedirectAttributes redirectAttributes) {
         luotDatSanRepository.findById(maLuotDat).ifPresent(luotDat -> {
-            luotDat.setTrangThai("DaThanhToan");
+            //sửa
+            luotDat.setTrangThai("Đã Thanh Toán");
             luotDatSanRepository.save(luotDat);
         });
         redirectAttributes.addFlashAttribute("success", "Ghi nhận thanh toán thành công!");
