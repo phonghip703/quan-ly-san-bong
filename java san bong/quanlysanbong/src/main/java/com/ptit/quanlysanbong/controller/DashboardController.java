@@ -24,7 +24,8 @@ public class DashboardController {
     @Autowired private DichVuRepository dichVuRepository;
     @Autowired private LuotDatSanRepository luotDatSanRepository;
 
-    @GetMapping("/")
+    // Hỗ trợ cả hai đường dẫn trang chủ / và /index
+    @GetMapping({"/", "/index"})
     public String index(Model model) {
         model.addAttribute("danhSachSan", sanBongRepository.findAll());
         return "index";
@@ -40,11 +41,19 @@ public class DashboardController {
                               @RequestParam String password, 
                               HttpSession session, 
                               RedirectAttributes redirectAttributes) {
-        if ("admin".equals(username) && "123".equals(password)) {
+        
+        // =========================================================================
+        // THAY ĐỔI TÀI KHOẢN VÀ MẬT KHẨU CHỦ SÂN THEO Ý BẠN TẠI ĐÂY:
+        // =========================================================================
+        String adminUsername = "HPH";  // Thay "admin" thành tên đăng nhập chủ sân bạn muốn
+        String adminPassword = "HPHdeptraiso1tg"; // Thay "123" thành mật khẩu chủ sân bạn muốn
+
+        if (adminUsername.equals(username) && adminPassword.equals(password)) {
             session.setAttribute("userRole", "ADMIN");
             return "redirect:/admin";
         } 
 
+        // Đăng nhập cho Khách hàng
         KhachHang khach = khachHangRepository.findAll().stream()
                 .filter(k -> username.equals(k.getUsername()) || username.equals(k.getSoDienThoai()))
                 .filter(k -> password.equals(k.getPassword()))
@@ -83,7 +92,6 @@ public class DashboardController {
         return "redirect:/login";
     }
 
-    // TRA CỨU SÂN: Tạo Key chuẩn hóa hai chiều (chuẩn hóa cả mã sân lẫn thời gian)
     @GetMapping("/tra-cuu-san")
     public String traCuuSan(@RequestParam(required = false) String ngay, Model model) {
         LocalDate ngayDat = (ngay != null && !ngay.isEmpty()) ? LocalDate.parse(ngay) : LocalDate.now();
@@ -97,7 +105,6 @@ public class DashboardController {
 
         for (LuotDatSan l : listDat) {
             if (l.getSanBong() != null && l.getNgayDat() != null && l.getGioBatDau() != null) {
-                // Chỉ xử lý các lượt đặt của ngày đang được chọn
                 if (l.getNgayDat().equals(ngayDat)) {
                     String gioBD = l.getGioBatDau().format(timeFormatter);
                     
@@ -148,7 +155,6 @@ public class DashboardController {
                 }
             }
 
-            // KIỂM TRA TRÙNG LỊCH BẮT BUỘC
             List<LuotDatSan> trungLich = luotDatSanRepository.findBySanBongMaSanAndNgayDatAndGioBatDau(sanBong.getMaSan(), ngay, gioStart);
             if (!trungLich.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "⚠️ Khung giờ " + gioBatDau + " - " + gioKetThuc + " của " + sanBong.getTenSan() + " đã có người khác đặt trước đó! Vui lòng chọn khung giờ khác.");
@@ -207,7 +213,6 @@ public class DashboardController {
         return "profile";
     }
 
-    // TRANG ADMIN: Được nâng cấp nhận tham số cccdSelect để xem chi tiết lịch sử từng khách hàng
     @GetMapping("/admin")
     public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
         model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
@@ -219,7 +224,6 @@ public class DashboardController {
         model.addAttribute("khachHangMoi", new KhachHang());
         model.addAttribute("luotDatMoi", new LuotDatSan());
 
-        // Bổ sung: Nạp dữ liệu hồ sơ và danh sách các lần đặt của 1 khách hàng cụ thể khi chủ sân bấm nút "Xem Chi Tiết"
         if (cccdSelect != null && !cccdSelect.isEmpty()) {
             khachHangRepository.findById(cccdSelect).ifPresent(kh -> {
                 model.addAttribute("khachHangChon", kh);
@@ -230,7 +234,6 @@ public class DashboardController {
         return "admin-dashboard";
     }
 
-    // XỬ LÝ XÁC NHẬN THANH TOÁN CHO CHỦ SÂN
     @PostMapping("/admin/xac-nhan")
     public String xacNhanLuotDat(@RequestParam("maLuotDat") Long maLuotDat, RedirectAttributes redirectAttributes) {
         luotDatSanRepository.findById(maLuotDat).ifPresent(luotDat -> {

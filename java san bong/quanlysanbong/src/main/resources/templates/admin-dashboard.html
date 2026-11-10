@@ -10,8 +10,10 @@
     <!-- Thanh Menu Trên Cùng -->
     <nav class="navbar navbar-dark bg-dark p-3">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">⚽ HỆ THỐNG QUẢN LÝ SÂN BÓNG - ADMIN DASHBOARD</a>
-            <a href="/index" class="btn btn-outline-light btn-sm">Xem Trang Chủ Client</a>
+            <!-- Đã đổi tên tiêu đề theo ảnh 1 -->
+            <a class="navbar-brand fw-bold" href="/admin">⚽ HỆ THỐNG QUẢN LÝ SÂN BÓNG</a>
+            <!-- Đã đổi tên nút bấm thành Về trang chủ -->
+            <a href="/index" class="btn btn-outline-light btn-sm">Về trang chủ</a>
         </div>
     </nav>
 
@@ -117,7 +119,7 @@
                                         <span class="badge bg-success" th:text="${kh.diemUyTin + ' điểm'}">100 điểm</span>
                                     </td>
                                     <td>
-                                        <a th:href="@{/admin/dashboard(cccdSelect=${kh.cccdCmt})}" class="btn btn-primary btn-sm">
+                                        <a th:href="@{/admin(cccdSelect=${kh.cccdCmt})}" class="btn btn-primary btn-sm">
                                             🔍 Xem Chi Tiết Lịch Sử
                                         </a>
                                     </td>
