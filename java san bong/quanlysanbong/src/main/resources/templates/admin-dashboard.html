@@ -10,9 +10,7 @@
     <!-- Thanh Menu Trên Cùng -->
     <nav class="navbar navbar-dark bg-dark p-3">
         <div class="container-fluid">
-            <!-- Đã đổi tên tiêu đề theo ảnh 1 -->
             <a class="navbar-brand fw-bold" href="/admin">⚽ HỆ THỐNG QUẢN LÝ SÂN BÓNG</a>
-            <!-- Đã đổi tên nút bấm thành Về trang chủ -->
             <a href="/index" class="btn btn-outline-light btn-sm">Về trang chủ</a>
         </div>
     </nav>
@@ -63,14 +61,20 @@
                                     </td>
                                     <td th:text="${ld.khachHang != null ? ld.khachHang.tenDoiBong : 'Không có'}">fc dau bui</td>
                                     <td class="fw-bold text-success" th:text="${#numbers.formatDecimal(ld.tienCoc, 0, 'COMMA', 0, 'POINT') + ' đ'}">150,000 đ</td>
+                                    
+                                    <!-- Ô TRẠNG THÁI: KHỚP CẢ CÓ DẤU VÀ KHÔNG DẤU -->
                                     <td>
-                                        <span th:if="${ld.trangThai == 'DaCoc'}" class="badge bg-warning text-dark">Đã Cọc</span>
-                                        <span th:if="${ld.trangThai == 'DaThanhToan'}" class="badge bg-success">Đã Thanh Toán</span>
+                                        <span th:if="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc'}" class="badge bg-warning text-dark">Đã Cọc</span>
+                                        <span th:if="${ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán'}" class="badge bg-success">Đã Thanh Toán</span>
+                                        <span th:unless="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc' || ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán'}" class="badge bg-secondary" th:text="${ld.trangThai}">Khác</span>
                                     </td>
+
+                                    <!-- NÚT GHI NHẬN: VÔ HIỆU HÓA KHI ĐÃ THANH TOÁN -->
                                     <td>
                                         <form th:action="@{/admin/xac-nhan}" method="post" style="display:inline;">
                                             <input type="hidden" name="maLuotDat" th:value="${ld.maLuotDat}"/>
-                                            <button type="submit" class="btn btn-sm btn-success" th:disabled="${ld.trangThai == 'DaThanhToan'}">
+                                            <button type="submit" class="btn btn-sm btn-success" 
+                                                    th:disabled="${ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán'}">
                                                 ✓ Ghi Nhận
                                             </button>
                                         </form>
@@ -163,8 +167,9 @@
                                     <td th:text="${ls.maSan}"></td>
                                     <td th:text="${#numbers.formatDecimal(ls.tienCoc, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
                                     <td>
-                                        <span th:if="${ls.trangThai == 'DaCoc'}" class="badge bg-warning text-dark">Đã Cọc</span>
-                                        <span th:if="${ls.trangThai == 'DaThanhToan'}" class="badge bg-success">Đã Thanh Toán</span>
+                                        <span th:if="${ls.trangThai == 'DaCoc' || ls.trangThai == 'Đã Cọc'}" class="badge bg-warning text-dark">Đã Cọc</span>
+                                        <span th:if="${ls.trangThai == 'DaThanhToan' || ls.trangThai == 'Đã Thanh Toán'}" class="badge bg-success">Đã Thanh Toán</span>
+                                        <span th:unless="${ls.trangThai == 'DaCoc' || ls.trangThai == 'Đã Cọc' || ls.trangThai == 'DaThanhToan' || ls.trangThai == 'Đã Thanh Toán'}" class="badge bg-secondary" th:text="${ls.trangThai}">Khác</span>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(lichSuDatCuaKhach)}">
