@@ -56,7 +56,11 @@
                                     <td th:text="${ld.ngayDat}">2026-10-22</td>
                                     <td><span class="badge bg-info text-dark" th:text="${ld.gioBatDau + ' - ' + ld.gioKetThuc}">17:00 - 18:30</span></td>
                                     <td class="fw-bold text-success" th:text="${#numbers.formatDecimal(ld.tienCoc, 0, 'COMMA', 0, 'POINT') + ' đ'}">200.000 đ</td>
-                                    <td><span class="badge bg-success" th:text="${ld.trangThai == 'DaCoc' ? 'Đã Cọc' : ld.trangThai}">Đã Cọc</span></td>
+                                    <td>
+                                        <!-- ĐÃ ĐƯỢC XỬ LÝ CHUẨN HIỂN THỊ ĐÃ CỌC VÀ ĐÃ THANH TOÁN -->
+                                        <span th:if="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc'}" class="badge bg-warning text-dark">Đã Cọc</span>
+                                        <span th:if="${ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán'}" class="badge bg-success">Đã Thanh Toán</span>
+                                    </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(danhSachDaDat)}">
                                     <td colspan="6" class="text-center text-muted py-4">Bạn chưa thực hiện lượt đặt sân nào.</td>
