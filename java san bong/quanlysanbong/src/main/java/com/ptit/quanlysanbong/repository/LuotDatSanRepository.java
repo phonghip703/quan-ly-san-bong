@@ -17,6 +17,6 @@ public interface LuotDatSanRepository extends JpaRepository<LuotDatSan, Long> {
     // 2. Hàm mới bổ sung: Lấy toàn bộ lịch sử đặt sân của 1 khách hàng theo CCCD cho Admin
     List<LuotDatSan> findByKhachHang_CccdCmtOrderByNgayDatDesc(String cccdCmt);
 
-    // SẮP XẾP TĂNG DẦN: LƯỢT CÓ NGÀY SỚM HƠN HIỂN THỊ TRÊN ĐẦU (ASC)
-    List<LuotDatSan> findAllByOrderByNgayDatAscGioBatDauAsc();
+   // ĐỔI SANG DESC: LƯỢT MỚI VỪA ĐẶT / NGÀY MỚI NHẤT LÊN ĐẦU, NGÀY CŨ XUỐNG DƯỚI CÙNG
+    List<LuotDatSan> findAllByOrderByNgayDatDescGioBatDauAsc();
 }

@@ -250,8 +250,8 @@ public String adminDashboard(@RequestParam(name = "cccdSelect", required = false
     model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
     model.addAttribute("danhSachDichVu", dichVuRepository.findAll());
     
-    // ĐÃ SỬA: Sắp xếp ngày & giờ đá từ sớm nhất đến muộn nhất (lên đầu)
-    model.addAttribute("danhSachDatSan", luotDatSanRepository.findAllByOrderByNgayDatAscGioBatDauAsc());
+    // GỌI HÀM LẤY LƯỢT MỚI NHẤT LÊN ĐẦU (DESC)
+    model.addAttribute("danhSachDatSan", luotDatSanRepository.findAllByOrderByNgayDatDescGioBatDauAsc());
 
     model.addAttribute("khachHangMoi", new KhachHang());
     model.addAttribute("luotDatMoi", new LuotDatSan());
