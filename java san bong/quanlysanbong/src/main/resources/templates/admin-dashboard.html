@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="bg-light">
-    <!-- Thanh Menu Trên Cùng -->
     <nav class="navbar navbar-dark bg-dark p-3">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold" href="/admin">⚽ HỆ THỐNG QUẢN LÝ SÂN BÓNG</a>
@@ -16,7 +15,6 @@
     </nav>
 
     <div class="container my-4">
-        <!-- Thanh Chuyển Đổi 2 Tab -->
         <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold" id="datsan-tab" data-bs-toggle="tab" data-bs-target="#datsan" type="button">
@@ -31,8 +29,7 @@
         </ul>
 
         <div class="tab-content" id="adminTabContent">
-            
-            <!-- TAB 1: DANH SÁCH TẤT CẢ LƯỢT ĐẶT SÂN -->
+            <!-- TAB 1: DANH SÁCH LƯỢT ĐẶT SÂN -->
             <div class="tab-pane fade show active" id="datsan" role="tabpanel">
                 <div class="card shadow-sm">
                     <div class="card-body p-0">
@@ -61,20 +58,17 @@
                                     </td>
                                     <td th:text="${ld.khachHang != null ? ld.khachHang.tenDoiBong : 'Không có'}">fc dau bui</td>
                                     <td class="fw-bold text-success" th:text="${#numbers.formatDecimal(ld.tienCoc, 0, 'COMMA', 0, 'POINT') + ' đ'}">150,000 đ</td>
-                                    
-                                    <!-- Ô TRẠNG THÁI: KHỚP CẢ CÓ DẤU VÀ KHÔNG DẤU -->
                                     <td>
                                         <span th:if="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc'}" class="badge bg-warning text-dark">Đã Cọc</span>
                                         <span th:if="${ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán'}" class="badge bg-success">Đã Thanh Toán</span>
-                                        <span th:unless="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc' || ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán'}" class="badge bg-secondary" th:text="${ld.trangThai}">Khác</span>
+                                        <span th:if="${ld.trangThai == 'DaHuy' || ld.trangThai == 'Đã Hủy'}" class="badge bg-danger">Đã Hủy</span>
+                                        <span th:unless="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc' || ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán' || ld.trangThai == 'DaHuy' || ld.trangThai == 'Đã Hủy'}" class="badge bg-secondary" th:text="${ld.trangThai}">Khác</span>
                                     </td>
-
-                                    <!-- NÚT GHI NHẬN: VÔ HIỆU HÓA KHI ĐÃ THANH TOÁN -->
                                     <td>
                                         <form th:action="@{/admin/xac-nhan}" method="post" style="display:inline;">
                                             <input type="hidden" name="maLuotDat" th:value="${ld.maLuotDat}"/>
                                             <button type="submit" class="btn btn-sm btn-success" 
-                                                    th:disabled="${ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán'}">
+                                                    th:disabled="${ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán' || ld.trangThai == 'DaHuy' || ld.trangThai == 'Đã Hủy'}">
                                                 ✓ Ghi Nhận
                                             </button>
                                         </form>
@@ -89,7 +83,7 @@
                 </div>
             </div>
 
-            <!-- TAB 2: QUẢN LÝ TOÀN BỘ KHÁCH HÀNG & LỊCH SỬ ĐẶT SÂN -->
+            <!-- TAB 2: QUẢN LÝ KHÁCH HÀNG & LỊCH SỬ -->
             <div class="tab-pane fade" id="khachhang" role="tabpanel">
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white fw-bold">
@@ -133,7 +127,6 @@
                     </div>
                 </div>
 
-                <!-- BẢNG HIỂN THỊ CHI TIẾT LỊCH SỬ ĐẶT SÂN KHI CHỦ SÂN BẤM CHỌN 1 KHÁCH -->
                 <div th:if="${khachHangChon != null}" class="card shadow-sm border-info">
                     <div class="card-header bg-info text-dark fw-bold">
                         📜 CHI TIẾT HỒ SƠ & TẤT CẢ CÁC LẦN ĐẶT SÂN CỦA KHÁCH: 
@@ -169,7 +162,8 @@
                                     <td>
                                         <span th:if="${ls.trangThai == 'DaCoc' || ls.trangThai == 'Đã Cọc'}" class="badge bg-warning text-dark">Đã Cọc</span>
                                         <span th:if="${ls.trangThai == 'DaThanhToan' || ls.trangThai == 'Đã Thanh Toán'}" class="badge bg-success">Đã Thanh Toán</span>
-                                        <span th:unless="${ls.trangThai == 'DaCoc' || ls.trangThai == 'Đã Cọc' || ls.trangThai == 'DaThanhToan' || ls.trangThai == 'Đã Thanh Toán'}" class="badge bg-secondary" th:text="${ls.trangThai}">Khác</span>
+                                        <span th:if="${ls.trangThai == 'DaHuy' || ls.trangThai == 'Đã Hủy'}" class="badge bg-danger">Đã Hủy</span>
+                                        <span th:unless="${ls.trangThai == 'DaCoc' || ls.trangThai == 'Đã Cọc' || ls.trangThai == 'DaThanhToan' || ls.trangThai == 'Đã Thanh Toán' || ls.trangThai == 'DaHuy' || ls.trangThai == 'Đã Hủy'}" class="badge bg-secondary" th:text="${ls.trangThai}">Khác</span>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(lichSuDatCuaKhach)}">
@@ -180,7 +174,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </body>

@@ -24,7 +24,7 @@ public class DashboardController {
     @Autowired private DichVuRepository dichVuRepository;
     @Autowired private LuotDatSanRepository luotDatSanRepository;
 
-    // Hỗ trợ cả hai đường dẫn trang chủ / và /index
+    // Hỗ trợ cả hai đường dẫn / và /index
     @GetMapping({"/", "/index"})
     public String index(Model model) {
         model.addAttribute("danhSachSan", sanBongRepository.findAll());
@@ -42,18 +42,15 @@ public class DashboardController {
                               HttpSession session, 
                               RedirectAttributes redirectAttributes) {
         
-        // =========================================================================
-        // THAY ĐỔI TÀI KHOẢN VÀ MẬT KHẨU CHỦ SÂN THEO Ý BẠN TẠI ĐÂY:
-        // =========================================================================
-        String adminUsername = "HPH";  // Thay "admin" thành tên đăng nhập chủ sân bạn muốn
-        String adminPassword = "HPHdeptraiso1tg"; // Thay "123" thành mật khẩu chủ sân bạn muốn
+        // TÙY CHỈNH TÀI KHOẢN VÀ MẬT KHẨU CHỦ SÂN TẠI ĐÂY:
+        String adminUsername = "admin";
+        String adminPassword = "123";
 
         if (adminUsername.equals(username) && adminPassword.equals(password)) {
             session.setAttribute("userRole", "ADMIN");
             return "redirect:/admin";
         } 
 
-        // Đăng nhập cho Khách hàng
         KhachHang khach = khachHangRepository.findAll().stream()
                 .filter(k -> username.equals(k.getUsername()) || username.equals(k.getSoDienThoai()))
                 .filter(k -> password.equals(k.getPassword()))
@@ -105,7 +102,8 @@ public class DashboardController {
 
         for (LuotDatSan l : listDat) {
             if (l.getSanBong() != null && l.getNgayDat() != null && l.getGioBatDau() != null) {
-                if (l.getNgayDat().equals(ngayDat)) {
+                // Không đánh dấu đã đặt nếu lượt đó đã bị HỦY
+                if (l.getNgayDat().equals(ngayDat) && !"DaHuy".equals(l.getTrangThai()) && !"Đã Hủy".equals(l.getTrangThai())) {
                     String gioBD = l.getGioBatDau().format(timeFormatter);
                     
                     if (l.getSanBong().getMaSan() != null) {
@@ -155,9 +153,14 @@ public class DashboardController {
                 }
             }
 
-            List<LuotDatSan> trungLich = luotDatSanRepository.findBySanBongMaSanAndNgayDatAndGioBatDau(sanBong.getMaSan(), ngay, gioStart);
+            // Kiểm tra trùng lịch đặt
+            List<LuotDatSan> trungLich = luotDatSanRepository.findBySanBongMaSanAndNgayDatAndGioBatDau(sanBong.getMaSan(), ngay, gioStart)
+                    .stream()
+                    .filter(l -> !"DaHuy".equals(l.getTrangThai()) && !"Đã Hủy".equals(l.getTrangThai()))
+                    .toList();
+
             if (!trungLich.isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "⚠️ Khung giờ " + gioBatDau + " - " + gioKetThuc + " của " + sanBong.getTenSan() + " đã có người khác đặt trước đó! Vui lòng chọn khung giờ khác.");
+                redirectAttributes.addFlashAttribute("error", "⚠️ Khung giờ " + gioBatDau + " - " + gioKetThuc + " của " + sanBong.getTenSan() + " đã có người đặt!");
                 return "redirect:/tra-cuu-san?ngay=" + ngayDat;
             }
 
@@ -189,7 +192,11 @@ public class DashboardController {
 
             luotDatSanRepository.save(luotDat);
 
-            redirectAttributes.addFlashAttribute("success", " Đặt sân thành công!");
+            // Truyền dữ liệu để tự động mở Pop-up QR thanh toán
+            redirectAttributes.addFlashAttribute("success", "Đặt sân thành công!");
+            redirectAttributes.addFlashAttribute("showQR", true);
+            redirectAttributes.addFlashAttribute("tienCocQR", tienCoc);
+            redirectAttributes.addFlashAttribute("sdtKhach", soDienThoai);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Lỗi khi đặt sân: " + e.getMessage());
         }
@@ -213,6 +220,29 @@ public class DashboardController {
         return "profile";
     }
 
+    // XỬ LÝ HỦY ĐẶT SÂN CHO KHÁCH HÀNG
+    @PostMapping("/huy-dat-san")
+    public String huyDatSan(@RequestParam("maLuotDat") Long maLuotDat, 
+                            HttpSession session, 
+                            RedirectAttributes redirectAttributes) {
+        KhachHang khach = (KhachHang) session.getAttribute("currentKhachHang");
+        if (khach == null) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập!");
+            return "redirect:/login";
+        }
+
+        luotDatSanRepository.findById(maLuotDat).ifPresent(luotDat -> {
+            if (luotDat.getKhachHang() != null && khach.getSoDienThoai().equals(luotDat.getKhachHang().getSoDienThoai())) {
+                luotDat.setTrangThai("DaHuy");
+                luotDatSanRepository.save(luotDat);
+                redirectAttributes.addFlashAttribute("success", "Hủy lượt đặt sân #" + maLuotDat + " thành công!");
+            }
+        });
+
+        return "redirect:/profile";
+    }
+
+    // TRANG ADMIN DASHBOARD
     @GetMapping("/admin")
     public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
         model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
@@ -234,11 +264,11 @@ public class DashboardController {
         return "admin-dashboard";
     }
 
+    // XÁC NHẬN THANH TOÁN CHO CHỦ SÂN
     @PostMapping("/admin/xac-nhan")
     public String xacNhanLuotDat(@RequestParam("maLuotDat") Long maLuotDat, RedirectAttributes redirectAttributes) {
         luotDatSanRepository.findById(maLuotDat).ifPresent(luotDat -> {
-            //sửa
-            luotDat.setTrangThai("Đã Thanh Toán");
+            luotDat.setTrangThai("DaThanhToan");
             luotDatSanRepository.save(luotDat);
         });
         redirectAttributes.addFlashAttribute("success", "Ghi nhận thanh toán thành công!");

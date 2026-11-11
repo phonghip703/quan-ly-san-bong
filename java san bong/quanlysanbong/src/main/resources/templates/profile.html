@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tài Khoản Cá Nhân - PTIT Football</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="bg-light">
 
@@ -17,6 +18,11 @@
     </nav>
 
     <div class="container">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm p-4 text-center">
@@ -47,6 +53,7 @@
                                     <th>Khung Giờ</th>
                                     <th>Tiền Cọc</th>
                                     <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,13 +64,60 @@
                                     <td><span class="badge bg-info text-dark" th:text="${ld.gioBatDau + ' - ' + ld.gioKetThuc}">17:00 - 18:30</span></td>
                                     <td class="fw-bold text-success" th:text="${#numbers.formatDecimal(ld.tienCoc, 0, 'COMMA', 0, 'POINT') + ' đ'}">200.000 đ</td>
                                     <td>
-                                        <!-- ĐÃ ĐƯỢC XỬ LÝ CHUẨN HIỂN THỊ ĐÃ CỌC VÀ ĐÃ THANH TOÁN -->
                                         <span th:if="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc'}" class="badge bg-warning text-dark">Đã Cọc</span>
                                         <span th:if="${ld.trangThai == 'DaThanhToan' || ld.trangThai == 'Đã Thanh Toán'}" class="badge bg-success">Đã Thanh Toán</span>
+                                        <span th:if="${ld.trangThai == 'DaHuy' || ld.trangThai == 'Đã Hủy'}" class="badge bg-danger">Đã Hủy</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <!-- Nút Xem QR Thanh Toán -->
+                                            <button type="button" class="btn btn-sm btn-outline-success fw-bold" 
+                                                    data-bs-toggle="modal" 
+                                                    th:data-bs-target="${'#qrModal' + ld.maLuotDat}"
+                                                    th:if="${ld.trangThai != 'DaHuy' && ld.trangThai != 'Đã Hủy'}">
+                                                💳 Xem QR
+                                            </button>
+
+                                            <!-- Nút Hủy Đặt Sân -->
+                                            <form th:action="@{/huy-dat-san}" method="post" style="display:inline;"
+                                                  th:if="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc'}">
+                                                <input type="hidden" name="maLuotDat" th:value="${ld.maLuotDat}"/>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold"
+                                                        onclick="return confirm('Bạn có chắc chắn muốn HỦY lượt đặt sân này không?');">
+                                                    ❌ Hủy Đặt
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <!-- MODAL BẬT QR THANH TOÁN KHI BẤM NÚT XEM QR -->
+                                        <div class="modal fade" th:id="${'qrModal' + ld.maLuotDat}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content text-center p-3">
+                                                    <div class="modal-header border-0 pb-0">
+                                                        <h5 class="modal-title fw-bold text-success w-100 fs-5" th:text="${'⚽ QR THANH TOÁN LƯỢT #DS' + ld.maLuotDat}"></h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p class="text-muted small mb-2">Quét mã QR để chuyển tiền cọc cho chủ sân:</p>
+                                                        
+                                                        <img th:src="@{'https://img.vietqr.io/image/MB-0987654321-compact2.png?amount=' + ${#numbers.formatInteger(ld.tienCoc, 0)} + '&addInfo=COC%20SAN%20' + ${khachHang.soDienThoai}}" 
+                                                             alt="Mã QR Chuyển Khoản" class="img-fluid rounded border shadow-sm mb-3 p-2 bg-white" style="max-width: 240px;">
+                                                        
+                                                        <div class="bg-light p-3 rounded text-start small border mb-2">
+                                                            <div><strong>🏦 Ngân hàng:</strong> MB Bank</div>
+                                                            <div><strong>💳 Số tài khoản:</strong> <span class="fw-bold text-primary">0987654321</span></div>
+                                                            <div><strong>👤 Chủ tài khoản:</strong> <span class="fw-bold text-uppercase">TRƯƠNG HỮU PHONG</span></div>
+                                                            <div><strong>💰 Tiền cọc:</strong> <span class="text-danger fw-bold" th:text="${#numbers.formatDecimal(ld.tienCoc, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}"></span></div>
+                                                            <div><strong>📝 Nội dung CK:</strong> <span class="badge bg-success" th:text="${'COC SAN ' + khachHang.soDienThoai}"></span></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(danhSachDaDat)}">
-                                    <td colspan="6" class="text-center text-muted py-4">Bạn chưa thực hiện lượt đặt sân nào.</td>
+                                    <td colspan="7" class="text-center text-muted py-4">Bạn chưa thực hiện lượt đặt sân nào.</td>
                                 </tr>
                             </tbody>
                         </table>

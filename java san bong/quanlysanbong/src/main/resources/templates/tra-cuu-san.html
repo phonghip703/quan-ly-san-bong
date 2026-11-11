@@ -217,4 +217,36 @@
     }
     </script>
 </body>
+<!-- MODAL TỰ ĐỘNG BẬT MÃ QR KHI ĐẶT SÂN THÀNH CÔNG -->
+    <div th:if="${showQR}" class="modal fade show" id="qrPayModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.6);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center border-0 shadow-lg p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-success w-100 fs-4">⚽ ĐẶT SÂN THÀNH CÔNG!</h5>
+                    <a th:href="@{/tra-cuu-san(ngay=${ngayChon})}" class="btn-close"></a>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Vui lòng quét mã QR bằng ứng dụng Ngân hàng (MB, Vietcombank, Momo...) để hoàn tất đặt cọc:</p>
+                    
+                    <!-- MÃ QR VIETQR MB BANK CỦA BẠN -->
+<img th:src="@{'https://img.vietqr.io/image/MB-1582807032006-compact2.png?amount=' + ${#numbers.formatInteger(tienCocQR, 0)} + '&addInfo=COC%20SAN%20' + ${sdtKhach}}" 
+     alt="Mã QR Chuyển Khoản" class="img-fluid rounded border shadow-sm mb-3 p-2 bg-white" style="max-width: 260px;">
+
+<!-- THÔNG TIN TÀI KHOẢN -->
+<div class="bg-light p-3 rounded text-start small mb-3 border">
+    <div class="mb-1"><strong>🏦 Ngân hàng:</strong> <span class="text-uppercase fw-bold">MB Bank</span></div>
+    <div class="mb-1"><strong>💳 Số tài khoản:</strong> <span class="fw-bold text-primary fs-6">1582807032006</span></div>
+    <div class="mb-1"><strong>👤 Chủ tài khoản:</strong> <span class="fw-bold text-uppercase">TRUONG HUU PHONG</span></div>
+    <div class="mb-1"><strong>💰 Số tiền cọc:</strong> <span class="text-danger fw-bold fs-6" th:text="${#numbers.formatDecimal(tienCocQR, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}"></span></div>
+    <div><strong>📝 Nội dung CK:</strong> <span class="badge bg-success fs-6" th:text="${'COC SAN ' + sdtKhach}"></span></div>
+</div>
+
+                    <a th:href="@{/tra-cuu-san(ngay=${ngayChon})}" class="btn btn-success w-100 fw-bold py-2 shadow-sm">
+                        ✓ Tôi Đã Chuyển Khoản Hoàn Tất
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
