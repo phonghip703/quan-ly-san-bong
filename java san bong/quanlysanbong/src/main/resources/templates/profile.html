@@ -18,12 +18,14 @@
     </nav>
 
     <div class="container">
+        <!-- Thông báo từ Flash Attributes -->
         <div th:if="${success}" class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
             <span th:text="${success}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
         <div class="row g-4">
+            <!-- Thẻ Thông Tin Cá Nhân -->
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm p-4 text-center">
                     <div class="mb-3">
@@ -40,6 +42,7 @@
                 </div>
             </div>
 
+            <!-- Bảng Lịch Sử Đặt Sân -->
             <div class="col-md-8">
                 <div class="card border-0 shadow-sm p-4">
                     <h4 class="fw-bold text-dark mb-3">📅 LỊCH SỬ ĐẶT SÂN CỦA BẠN</h4>
@@ -100,13 +103,14 @@
                                                     <div class="modal-body">
                                                         <p class="text-muted small mb-2">Quét mã QR để chuyển tiền cọc cho chủ sân:</p>
                                                         
-                                                        <img th:src="@{'https://img.vietqr.io/image/MB-0987654321-compact2.png?amount=' + ${#numbers.formatInteger(ld.tienCoc, 0)} + '&addInfo=COC%20SAN%20' + ${khachHang.soDienThoai}}" 
+                                                        <!-- MÃ QR VIETQR MB BANK (STK: 1582807032006) -->
+                                                        <img th:src="@{'https://img.vietqr.io/image/MB-1582807032006-compact2.png?amount=' + ${#numbers.formatInteger(ld.tienCoc, 0)} + '&addInfo=COC%20SAN%20' + ${khachHang.soDienThoai}}" 
                                                              alt="Mã QR Chuyển Khoản" class="img-fluid rounded border shadow-sm mb-3 p-2 bg-white" style="max-width: 240px;">
                                                         
                                                         <div class="bg-light p-3 rounded text-start small border mb-2">
                                                             <div><strong>🏦 Ngân hàng:</strong> MB Bank</div>
-                                                            <div><strong>💳 Số tài khoản:</strong> <span class="fw-bold text-primary">0987654321</span></div>
-                                                            <div><strong>👤 Chủ tài khoản:</strong> <span class="fw-bold text-uppercase">TRƯƠNG HỮU PHONG</span></div>
+                                                            <div><strong>💳 Số tài khoản:</strong> <span class="fw-bold text-primary">1582807032006</span></div>
+                                                            <div><strong>👤 Chủ tài khoản:</strong> <span class="fw-bold text-uppercase">TRUONG HUU PHONG</span></div>
                                                             <div><strong>💰 Tiền cọc:</strong> <span class="text-danger fw-bold" th:text="${#numbers.formatDecimal(ld.tienCoc, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}"></span></div>
                                                             <div><strong>📝 Nội dung CK:</strong> <span class="badge bg-success" th:text="${'COC SAN ' + khachHang.soDienThoai}"></span></div>
                                                         </div>

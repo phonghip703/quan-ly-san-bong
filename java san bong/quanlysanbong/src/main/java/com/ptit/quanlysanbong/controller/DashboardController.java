@@ -43,8 +43,8 @@ public class DashboardController {
                               RedirectAttributes redirectAttributes) {
         
         // TÙY CHỈNH TÀI KHOẢN VÀ MẬT KHẨU CHỦ SÂN TẠI ĐÂY:
-        String adminUsername = "admin";
-        String adminPassword = "123";
+        String adminUsername = "HPH";
+        String adminPassword = "HPHdeptraiso1tg";
 
         if (adminUsername.equals(username) && adminPassword.equals(password)) {
             session.setAttribute("userRole", "ADMIN");
