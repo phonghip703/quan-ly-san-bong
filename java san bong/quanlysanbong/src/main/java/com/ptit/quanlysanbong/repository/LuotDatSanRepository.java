@@ -11,12 +11,10 @@ import java.util.List;
 @Repository
 public interface LuotDatSanRepository extends JpaRepository<LuotDatSan, Long> {
     
-    // Tìm các lượt đặt sân trùng Mã Sân, Ngày Đặt và Giờ Bắt Đầu
     List<LuotDatSan> findBySanBongMaSanAndNgayDatAndGioBatDau(String maSan, LocalDate ngayDat, LocalTime gioBatDau);
 
-    // 2. Hàm mới bổ sung: Lấy toàn bộ lịch sử đặt sân của 1 khách hàng theo CCCD cho Admin
     List<LuotDatSan> findByKhachHang_CccdCmtOrderByNgayDatDesc(String cccdCmt);
 
-   // ĐỔI SANG DESC: LƯỢT MỚI VỪA ĐẶT / NGÀY MỚI NHẤT LÊN ĐẦU, NGÀY CŨ XUỐNG DƯỚI CÙNG
-    List<LuotDatSan> findAllByOrderByNgayDatDescGioBatDauAsc();
+    // Sắp xếp lượt đặt sân mới nhất (Mã #DS lớn nhất) lên đầu bảng
+    List<LuotDatSan> findAllByOrderByMaLuotDatDesc();
 }

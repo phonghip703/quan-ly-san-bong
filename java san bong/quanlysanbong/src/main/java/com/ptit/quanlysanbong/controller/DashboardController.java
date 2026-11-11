@@ -24,7 +24,6 @@ public class DashboardController {
     @Autowired private DichVuRepository dichVuRepository;
     @Autowired private LuotDatSanRepository luotDatSanRepository;
 
-    // Hỗ trợ cả hai đường dẫn / và /index
     @GetMapping({"/", "/index"})
     public String index(Model model) {
         model.addAttribute("danhSachSan", sanBongRepository.findAll());
@@ -42,7 +41,6 @@ public class DashboardController {
                               HttpSession session, 
                               RedirectAttributes redirectAttributes) {
         
-        // TÙY CHỈNH TÀI KHOẢN VÀ MẬT KHẨU CHỦ SÂN TẠI ĐÂY:
         String adminUsername = "HPH";
         String adminPassword = "HPHdeptraiso1tg";
 
@@ -81,8 +79,19 @@ public class DashboardController {
             khachHang.setDiemUyTin(100);
         }
         
+        // TỰ ĐỘNG GÁN SỐ CCCD BẰNG SĐT NẾU ĐỂ TRỐNG TRÁNH LỖI PRIMARY KEY MYSQL
+        if (khachHang.getCccdCmt() == null || khachHang.getCccdCmt().trim().isEmpty()) {
+            khachHang.setCccdCmt(khachHang.getSoDienThoai());
+        }
+
+        if (khachHang.getTenDoiBong() == null || khachHang.getTenDoiBong().trim().isEmpty()) {
+            khachHang.setTenDoiBong("FC " + khachHang.getSoDienThoai());
+        }
+
         khachHang.setUsername(khachHang.getSoDienThoai());
         khachHang.setPassword(matKhau);
+        
+        // Lưu khách hàng mới vào CSDL
         khachHangRepository.save(khachHang);
 
         redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Hãy đăng nhập bằng SĐT: " + khachHang.getSoDienThoai());
@@ -102,7 +111,6 @@ public class DashboardController {
 
         for (LuotDatSan l : listDat) {
             if (l.getSanBong() != null && l.getNgayDat() != null && l.getGioBatDau() != null) {
-                // Không đánh dấu đã đặt nếu lượt đó đã bị HỦY
                 if (l.getNgayDat().equals(ngayDat) && !"DaHuy".equals(l.getTrangThai()) && !"Đã Hủy".equals(l.getTrangThai())) {
                     String gioBD = l.getGioBatDau().format(timeFormatter);
                     
@@ -129,6 +137,7 @@ public class DashboardController {
                                    @RequestParam(required = false) String hoTenKhach,
                                    @RequestParam String soDienThoai,
                                    @RequestParam Double tienCoc,
+                                   HttpSession session,
                                    RedirectAttributes redirectAttributes) {
         try {
             String gBD = gioBatDau.length() == 5 ? gioBatDau + ":00" : gioBatDau;
@@ -153,7 +162,6 @@ public class DashboardController {
                 }
             }
 
-            // Kiểm tra trùng lịch đặt
             List<LuotDatSan> trungLich = luotDatSanRepository.findBySanBongMaSanAndNgayDatAndGioBatDau(sanBong.getMaSan(), ngay, gioStart)
                     .stream()
                     .filter(l -> !"DaHuy".equals(l.getTrangThai()) && !"Đã Hủy".equals(l.getTrangThai()))
@@ -171,7 +179,8 @@ public class DashboardController {
 
             if (khachHang == null) {
                 khachHang = new KhachHang();
-                khachHang.setCccdCmt("KH_" + System.currentTimeMillis());
+                String cccdRandom = String.valueOf((long) (Math.random() * 900000000L + 100000000L));
+                khachHang.setCccdCmt(cccdRandom);
                 khachHang.setTenDoiBong("FC " + soDienThoai);
                 khachHang.setTen((hoTenKhach != null && !hoTenKhach.isEmpty()) ? hoTenKhach : "Khách " + soDienThoai);
                 khachHang.setSoDienThoai(soDienThoai);
@@ -180,6 +189,10 @@ public class DashboardController {
                 khachHang.setDiemUyTin(100);
                 khachHang = khachHangRepository.save(khachHang);
             }
+
+            // Tự động cập nhật Session trình duyệt
+            session.setAttribute("userRole", "USER");
+            session.setAttribute("currentKhachHang", khachHang);
 
             LuotDatSan luotDat = new LuotDatSan();
             luotDat.setSanBong(sanBong);
@@ -192,7 +205,6 @@ public class DashboardController {
 
             luotDatSanRepository.save(luotDat);
 
-            // Truyền dữ liệu để tự động mở Pop-up QR thanh toán
             redirectAttributes.addFlashAttribute("success", "Đặt sân thành công!");
             redirectAttributes.addFlashAttribute("showQR", true);
             redirectAttributes.addFlashAttribute("tienCocQR", tienCoc);
@@ -204,25 +216,24 @@ public class DashboardController {
     }
 
     @GetMapping("/profile")
-public String userProfile(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-    KhachHang khach = (KhachHang) session.getAttribute("currentKhachHang");
-    if (khach == null) {
-        redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để xem thông tin cá nhân!");
-        return "redirect:/login";
+    public String userProfile(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        KhachHang khach = (KhachHang) session.getAttribute("currentKhachHang");
+        if (khach == null) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để xem thông tin cá nhân!");
+            return "redirect:/login";
+        }
+
+        // Sắp xếp lượt mới nhất (#DS lớn nhất) hiển thị lên trên đầu bảng
+        List<LuotDatSan> dsDat = luotDatSanRepository.findAll().stream()
+                .filter(l -> l.getKhachHang() != null && khach.getSoDienThoai().equals(l.getKhachHang().getSoDienThoai()))
+                .sorted((a, b) -> Long.compare(b.getMaLuotDat(), a.getMaLuotDat()))
+                .toList();
+
+        model.addAttribute("khachHang", khach);
+        model.addAttribute("danhSachDaDat", dsDat);
+        return "profile";
     }
 
-    // ĐÃ SỬA: SẮP XẾP LƯỢT ĐẶT MỚI NHẤT (#DS LỚN NHẤT) LÊN ĐẦU BẢNG
-    List<LuotDatSan> dsDat = luotDatSanRepository.findAll().stream()
-            .filter(l -> l.getKhachHang() != null && khach.getSoDienThoai().equals(l.getKhachHang().getSoDienThoai()))
-            .sorted((a, b) -> Long.compare(b.getMaLuotDat(), a.getMaLuotDat()))
-            .toList();
-
-    model.addAttribute("khachHang", khach);
-    model.addAttribute("danhSachDaDat", dsDat);
-    return "profile";
-}
-
-    // XỬ LÝ HỦY ĐẶT SÂN CHO KHÁCH HÀNG
     @PostMapping("/huy-dat-san")
     public String huyDatSan(@RequestParam("maLuotDat") Long maLuotDat, 
                             HttpSession session, 
@@ -244,31 +255,30 @@ public String userProfile(HttpSession session, Model model, RedirectAttributes r
         return "redirect:/profile";
     }
 
-    // TRANG ADMIN DASHBOARD
     @GetMapping("/admin")
-public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
-    model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
-    model.addAttribute("danhSachSan", sanBongRepository.findAll());
-    model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
-    model.addAttribute("danhSachDichVu", dichVuRepository.findAll());
-    
-    // GỌI HÀM LẤY LƯỢT MỚI NHẤT LÊN ĐẦU (DESC)
-    model.addAttribute("danhSachDatSan", luotDatSanRepository.findAllByOrderByNgayDatDescGioBatDauAsc());
+    public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
+        // Lấy toàn bộ khách hàng đã đăng ký hoặc tự tạo từ đặt sân
+        model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
+        model.addAttribute("danhSachSan", sanBongRepository.findAll());
+        model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
+        model.addAttribute("danhSachDichVu", dichVuRepository.findAll());
+        
+        // Lấy danh sách lượt đặt sân với lượt mới nhất nằm trên cùng
+        model.addAttribute("danhSachDatSan", luotDatSanRepository.findAllByOrderByMaLuotDatDesc());
 
-    model.addAttribute("khachHangMoi", new KhachHang());
-    model.addAttribute("luotDatMoi", new LuotDatSan());
+        model.addAttribute("khachHangMoi", new KhachHang());
+        model.addAttribute("luotDatMoi", new LuotDatSan());
 
-    if (cccdSelect != null && !cccdSelect.isEmpty()) {
-        khachHangRepository.findById(cccdSelect).ifPresent(kh -> {
-            model.addAttribute("khachHangChon", kh);
-            model.addAttribute("lichSuDatCuaKhach", luotDatSanRepository.findByKhachHang_CccdCmtOrderByNgayDatDesc(cccdSelect));
-        });
+        if (cccdSelect != null && !cccdSelect.isEmpty()) {
+            khachHangRepository.findById(cccdSelect).ifPresent(kh -> {
+                model.addAttribute("khachHangChon", kh);
+                model.addAttribute("lichSuDatCuaKhach", luotDatSanRepository.findByKhachHang_CccdCmtOrderByNgayDatDesc(cccdSelect));
+            });
+        }
+
+        return "admin-dashboard";
     }
 
-    return "admin-dashboard";
-}
-
-    // XÁC NHẬN THANH TOÁN CHO CHỦ SÂN
     @PostMapping("/admin/xac-nhan")
     public String xacNhanLuotDat(@RequestParam("maLuotDat") Long maLuotDat, RedirectAttributes redirectAttributes) {
         luotDatSanRepository.findById(maLuotDat).ifPresent(luotDat -> {
