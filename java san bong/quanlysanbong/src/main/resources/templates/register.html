@@ -22,8 +22,8 @@
                             <input type="text" th:field="*{soDienThoai}" class="form-control" placeholder="Ví dụ: 0987654321" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Số CCCD / CMT:</label>
-                            <input type="text" th:field="*{cccdCmt}" class="form-control" placeholder="Nhập số CCCD/CMT (nếu có)">
+                            <label class="form-label fw-bold">Số CCCD / CMT (Tối đa 10 số):</label>
+                            <input type="text" th:field="*{cccdCmt}" class="form-control" maxlength="10" placeholder="Nhập số CCCD/CMT (nếu có)">
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Tên Đội Bóng:</label>

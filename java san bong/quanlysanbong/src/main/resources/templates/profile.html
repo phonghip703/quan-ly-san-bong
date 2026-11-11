@@ -18,20 +18,24 @@
     </nav>
 
     <div class="container">
-        <!-- Thông báo từ Flash Attributes -->
         <div th:if="${success}" class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
             <span th:text="${success}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
         <div class="row g-4">
-            <!-- Thẻ Thông Tin Cá Nhân -->
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm p-4 text-center">
                     <div class="mb-3">
                         <span class="fs-1">👤</span>
                     </div>
-                    <h5 class="fw-bold text-primary mb-1" th:text="${khachHang != null ? (khachHang.hoTendem + ' ' + khachHang.ten) : 'Khách Hàng'}">Nguyễn Văn A</h5>
+                    
+                    <!-- SỬA LOẠI BỎ CHỮ NULL TRƯỚC TÊN -->
+                    <h5 class="fw-bold text-primary mb-1" 
+                        th:text="${khachHang != null ? ((khachHang.hoTendem != null && khachHang.hoTendem != '' ? khachHang.hoTendem + ' ' : '') + (khachHang.ten != null ? khachHang.ten : 'Khách Hàng')) : 'Khách Hàng'}">
+                        Nguyễn Văn A
+                    </h5>
+                    
                     <p class="text-muted mb-2" th:text="${'Tên Đội: ' + (khachHang != null ? khachHang.tenDoiBong : 'Chưa có')}">FC PTIT</p>
                     <hr/>
                     <div class="text-start small">
@@ -42,7 +46,6 @@
                 </div>
             </div>
 
-            <!-- Bảng Lịch Sử Đặt Sân -->
             <div class="col-md-8">
                 <div class="card border-0 shadow-sm p-4">
                     <h4 class="fw-bold text-dark mb-3">📅 LỊCH SỬ ĐẶT SÂN CỦA BẠN</h4>
@@ -73,7 +76,6 @@
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1">
-                                            <!-- Nút Xem QR Thanh Toán -->
                                             <button type="button" class="btn btn-sm btn-outline-success fw-bold" 
                                                     data-bs-toggle="modal" 
                                                     th:data-bs-target="${'#qrModal' + ld.maLuotDat}"
@@ -81,7 +83,6 @@
                                                 💳 Xem QR
                                             </button>
 
-                                            <!-- Nút Hủy Đặt Sân -->
                                             <form th:action="@{/huy-dat-san}" method="post" style="display:inline;"
                                                   th:if="${ld.trangThai == 'DaCoc' || ld.trangThai == 'Đã Cọc'}">
                                                 <input type="hidden" name="maLuotDat" th:value="${ld.maLuotDat}"/>
@@ -92,7 +93,7 @@
                                             </form>
                                         </div>
 
-                                        <!-- MODAL BẬT QR THANH TOÁN KHI BẤM NÚT XEM QR -->
+                                        <!-- MODAL QR VIETQR MB BANK (STK: 1582807032006) -->
                                         <div class="modal fade" th:id="${'qrModal' + ld.maLuotDat}" tabindex="-1" aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered">
                                                 <div class="modal-content text-center p-3">
@@ -103,7 +104,6 @@
                                                     <div class="modal-body">
                                                         <p class="text-muted small mb-2">Quét mã QR để chuyển tiền cọc cho chủ sân:</p>
                                                         
-                                                        <!-- MÃ QR VIETQR MB BANK (STK: 1582807032006) -->
                                                         <img th:src="@{'https://img.vietqr.io/image/MB-1582807032006-compact2.png?amount=' + ${#numbers.formatInteger(ld.tienCoc, 0)} + '&addInfo=COC%20SAN%20' + ${khachHang.soDienThoai}}" 
                                                              alt="Mã QR Chuyển Khoản" class="img-fluid rounded border shadow-sm mb-3 p-2 bg-white" style="max-width: 240px;">
                                                         

@@ -41,8 +41,8 @@ public class DashboardController {
                               HttpSession session, 
                               RedirectAttributes redirectAttributes) {
         
-        String adminUsername = "HPH";
-        String adminPassword = "HPHdeptraiso1tg";
+        String adminUsername = "admin";
+        String adminPassword = "123";
 
         if (adminUsername.equals(username) && adminPassword.equals(password)) {
             session.setAttribute("userRole", "ADMIN");
@@ -79,9 +79,25 @@ public class DashboardController {
             khachHang.setDiemUyTin(100);
         }
         
-        // TỰ ĐỘNG GÁN SỐ CCCD BẰNG SĐT NẾU ĐỂ TRỐNG TRÁNH LỖI PRIMARY KEY MYSQL
+        // CHỐNG HIỂN THỊ CHỮ NULL TRÊN TRANG WEB
+        if (khachHang.getHoTendem() == null) {
+            khachHang.setHoTendem("");
+        }
+
+        // TỰ ĐỘNG GÁN SỐ CCCD NẾU TRỐNG
         if (khachHang.getCccdCmt() == null || khachHang.getCccdCmt().trim().isEmpty()) {
             khachHang.setCccdCmt(khachHang.getSoDienThoai());
+        }
+
+        // CẮT ĐỘ DÀI TỐI ĐA 10 KÝ TỰ ĐỂ KHÔNG BỊ TRỎ LỖI KHÓA CHÍNH (PRIMARY KEY) TRONG MYSQL
+        if (khachHang.getCccdCmt().length() > 10) {
+            khachHang.setCccdCmt(khachHang.getCccdCmt().substring(0, 10));
+        }
+
+        // XỬ LÝ NẾU TRÙNG CCCD KHÓA CHÍNH
+        if (khachHangRepository.existsById(khachHang.getCccdCmt())) {
+            String newCccd = String.valueOf((long) (Math.random() * 900000000L + 100000000L));
+            khachHang.setCccdCmt(newCccd.substring(0, 10));
         }
 
         if (khachHang.getTenDoiBong() == null || khachHang.getTenDoiBong().trim().isEmpty()) {
@@ -91,7 +107,7 @@ public class DashboardController {
         khachHang.setUsername(khachHang.getSoDienThoai());
         khachHang.setPassword(matKhau);
         
-        // Lưu khách hàng mới vào CSDL
+        // Lưu khách hàng mới vào CSDL MySQL (Insert bản ghi thành công)
         khachHangRepository.save(khachHang);
 
         redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Hãy đăng nhập bằng SĐT: " + khachHang.getSoDienThoai());
@@ -179,8 +195,10 @@ public class DashboardController {
 
             if (khachHang == null) {
                 khachHang = new KhachHang();
+                // Chuẩn độ dài 9 chữ số ngẫu nhiên (dưới 10 ký tự)
                 String cccdRandom = String.valueOf((long) (Math.random() * 900000000L + 100000000L));
                 khachHang.setCccdCmt(cccdRandom);
+                khachHang.setHoTendem("");
                 khachHang.setTenDoiBong("FC " + soDienThoai);
                 khachHang.setTen((hoTenKhach != null && !hoTenKhach.isEmpty()) ? hoTenKhach : "Khách " + soDienThoai);
                 khachHang.setSoDienThoai(soDienThoai);
@@ -190,7 +208,7 @@ public class DashboardController {
                 khachHang = khachHangRepository.save(khachHang);
             }
 
-            // Tự động cập nhật Session trình duyệt
+            // Đồng bộ ngay với Session trình duyệt
             session.setAttribute("userRole", "USER");
             session.setAttribute("currentKhachHang", khachHang);
 
@@ -223,13 +241,21 @@ public class DashboardController {
             return "redirect:/login";
         }
 
-        // Sắp xếp lượt mới nhất (#DS lớn nhất) hiển thị lên trên đầu bảng
+        // Lấy thông tin mới nhất từ Database phòng trường hợp vừa được cập nhật
+        khachHangRepository.findAll().stream()
+                .filter(k -> khach.getSoDienThoai().equals(k.getSoDienThoai()))
+                .findFirst()
+                .ifPresent(updatedKhach -> session.setAttribute("currentKhachHang", updatedKhach));
+
+        KhachHang currentKhach = (KhachHang) session.getAttribute("currentKhachHang");
+
+        // Sắp xếp các lượt đặt sân mới nhất (#DS lớn nhất) lên trên đầu bảng cá nhân
         List<LuotDatSan> dsDat = luotDatSanRepository.findAll().stream()
-                .filter(l -> l.getKhachHang() != null && khach.getSoDienThoai().equals(l.getKhachHang().getSoDienThoai()))
+                .filter(l -> l.getKhachHang() != null && currentKhach.getSoDienThoai().equals(l.getKhachHang().getSoDienThoai()))
                 .sorted((a, b) -> Long.compare(b.getMaLuotDat(), a.getMaLuotDat()))
                 .toList();
 
-        model.addAttribute("khachHang", khach);
+        model.addAttribute("khachHang", currentKhach);
         model.addAttribute("danhSachDaDat", dsDat);
         return "profile";
     }
@@ -257,13 +283,13 @@ public class DashboardController {
 
     @GetMapping("/admin")
     public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
-        // Lấy toàn bộ khách hàng đã đăng ký hoặc tự tạo từ đặt sân
+        // Lấy danh sách toàn bộ khách hàng trong CSDL
         model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
         model.addAttribute("danhSachSan", sanBongRepository.findAll());
         model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
         model.addAttribute("danhSachDichVu", dichVuRepository.findAll());
         
-        // Lấy danh sách lượt đặt sân với lượt mới nhất nằm trên cùng
+        // Sắp xếp các lượt đặt sân mới nhất (#DS lớn nhất) lên đầu tiên
         model.addAttribute("danhSachDatSan", luotDatSanRepository.findAllByOrderByMaLuotDatDesc());
 
         model.addAttribute("khachHangMoi", new KhachHang());
