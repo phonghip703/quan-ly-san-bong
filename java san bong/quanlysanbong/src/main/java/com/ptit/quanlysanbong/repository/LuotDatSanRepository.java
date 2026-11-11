@@ -15,6 +15,6 @@ public interface LuotDatSanRepository extends JpaRepository<LuotDatSan, Long> {
 
     List<LuotDatSan> findByKhachHang_CccdCmtOrderByNgayDatDesc(String cccdCmt);
 
-    // Sắp xếp lượt đặt sân mới nhất (Mã #DS lớn nhất) lên đầu bảng
+    // Sắp xếp lượt đặt sân mới nhất (#DS lớn nhất) lên dòng đầu tiên
     List<LuotDatSan> findAllByOrderByMaLuotDatDesc();
 }

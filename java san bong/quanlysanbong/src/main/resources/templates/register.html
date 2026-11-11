@@ -12,6 +12,8 @@
                 <div class="card shadow border-0 p-4">
                     <h3 class="fw-bold text-center text-success mb-3">📝 ĐĂNG KÝ TÀI KHOẢN</h3>
                     
+                    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
                     <form th:action="@{/register}" th:object="${khachHangMoi}" method="post">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Họ và Tên (*):</label>
@@ -22,8 +24,9 @@
                             <input type="text" th:field="*{soDienThoai}" class="form-control" placeholder="Ví dụ: 0987654321" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Số CCCD / CMT (Tối đa 10 số):</label>
-                            <input type="text" th:field="*{cccdCmt}" class="form-control" maxlength="10" placeholder="Nhập số CCCD/CMT (nếu có)">
+                            <label class="form-label fw-bold">Số CCCD / CMT:</label>
+                            <!-- ĐÃ BỎ MAXLENGTH HỖ TRỢ ĐỦ 12 SỐ HOẶC ĐỘ DÀI TÙY Ý -->
+                            <input type="text" th:field="*{cccdCmt}" class="form-control" placeholder="Nhập số CCCD/CMT (nếu có)">
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Tên Đội Bóng:</label>

@@ -24,6 +24,41 @@ public class DashboardController {
     @Autowired private DichVuRepository dichVuRepository;
     @Autowired private LuotDatSanRepository luotDatSanRepository;
 
+    // TÁCH HỌ ĐỆM VÀ TÊN CHÍNH XÁC (TRÁNH LỖI HIỂN THỊ CHỮ NULL TRONG HỌ TÊN)
+    private void setFullCustomerName(KhachHang khachHang, String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            khachHang.setHoTendem("");
+            khachHang.setTen("Khách hàng");
+            return;
+        }
+        String trimmed = fullName.trim();
+        int lastSpaceIndex = trimmed.lastIndexOf(' ');
+        if (lastSpaceIndex > 0) {
+            khachHang.setHoTendem(trimmed.substring(0, lastSpaceIndex).trim());
+            khachHang.setTen(trimmed.substring(lastSpaceIndex + 1).trim());
+        } else {
+            khachHang.setHoTendem("");
+            khachHang.setTen(trimmed);
+        }
+    }
+
+    // TẠO SỐ CCCD DUY NHẤT VÀ KHÔNG GIỚI HẠN ĐỘ DÀI KÝ TỰ (BỎ CẮT CHUỖI 10 SỐ)
+    private String generateUniqueCccd(KhachHangRepository repo, String inputCccd, String phone) {
+        String cccd = inputCccd;
+        if (cccd == null || cccd.trim().isEmpty()) {
+            cccd = (phone != null && !phone.trim().isEmpty()) ? phone.trim() : "KH_" + System.currentTimeMillis();
+        }
+        cccd = cccd.trim();
+
+        // NẾU SỐ CCCD ĐÃ TỒN TẠI TRONG CSDL, TỰ ĐỘNG THÊM HẬU TỐ ĐỂ KHÔNG BỊ LỖI TRÙNG KHÓA CHÍNH (PRIMARY KEY)
+        String baseCccd = cccd;
+        int count = 1;
+        while (repo.existsById(cccd)) {
+            cccd = baseCccd + "_" + count++;
+        }
+        return cccd;
+    }
+
     @GetMapping({"/", "/index"})
     public String index(Model model) {
         model.addAttribute("danhSachSan", sanBongRepository.findAll());
@@ -75,43 +110,35 @@ public class DashboardController {
     public String handleRegister(@ModelAttribute("khachHangMoi") KhachHang khachHang, 
                                  @RequestParam("matKhau") String matKhau, 
                                  RedirectAttributes redirectAttributes) {
-        if (khachHang.getDiemUyTin() == null) {
-            khachHang.setDiemUyTin(100);
-        }
-        
-        // CHỐNG HIỂN THỊ CHỮ NULL TRÊN TRANG WEB
-        if (khachHang.getHoTendem() == null) {
-            khachHang.setHoTendem("");
-        }
+        try {
+            setFullCustomerName(khachHang, khachHang.getTen());
 
-        // TỰ ĐỘNG GÁN SỐ CCCD NẾU TRỐNG
-        if (khachHang.getCccdCmt() == null || khachHang.getCccdCmt().trim().isEmpty()) {
-            khachHang.setCccdCmt(khachHang.getSoDienThoai());
+            // GIỮ NGUYÊN SỐ CCCD KHÔNG GIỚI HẠN ĐỘ DÀI & ĐẢM BẢO TÍNH DUY NHẤT TRONG CSDL
+            String uniqueCccd = generateUniqueCccd(khachHangRepository, khachHang.getCccdCmt(), khachHang.getSoDienThoai());
+            khachHang.setCccdCmt(uniqueCccd);
+
+            if (khachHang.getTenDoiBong() == null || khachHang.getTenDoiBong().trim().isEmpty()) {
+                khachHang.setTenDoiBong("FC " + khachHang.getSoDienThoai());
+            }
+            if (khachHang.getDiaChi() == null) {
+                khachHang.setDiaChi("");
+            }
+            if (khachHang.getDiemUyTin() == null) {
+                khachHang.setDiemUyTin(100);
+            }
+
+            khachHang.setUsername(khachHang.getSoDienThoai());
+            khachHang.setPassword(matKhau);
+            
+            // Lưu bản ghi khách hàng mới vào MySQL
+            khachHangRepository.save(khachHang);
+
+            redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Hãy đăng nhập bằng SĐT: " + khachHang.getSoDienThoai());
+            return "redirect:/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi đăng ký: " + e.getMessage());
+            return "redirect:/register";
         }
-
-        // CẮT ĐỘ DÀI TỐI ĐA 10 KÝ TỰ ĐỂ KHÔNG BỊ TRỎ LỖI KHÓA CHÍNH (PRIMARY KEY) TRONG MYSQL
-        if (khachHang.getCccdCmt().length() > 10) {
-            khachHang.setCccdCmt(khachHang.getCccdCmt().substring(0, 10));
-        }
-
-        // XỬ LÝ NẾU TRÙNG CCCD KHÓA CHÍNH
-        if (khachHangRepository.existsById(khachHang.getCccdCmt())) {
-            String newCccd = String.valueOf((long) (Math.random() * 900000000L + 100000000L));
-            khachHang.setCccdCmt(newCccd.substring(0, 10));
-        }
-
-        if (khachHang.getTenDoiBong() == null || khachHang.getTenDoiBong().trim().isEmpty()) {
-            khachHang.setTenDoiBong("FC " + khachHang.getSoDienThoai());
-        }
-
-        khachHang.setUsername(khachHang.getSoDienThoai());
-        khachHang.setPassword(matKhau);
-        
-        // Lưu khách hàng mới vào CSDL MySQL (Insert bản ghi thành công)
-        khachHangRepository.save(khachHang);
-
-        redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Hãy đăng nhập bằng SĐT: " + khachHang.getSoDienThoai());
-        return "redirect:/login";
     }
 
     @GetMapping("/tra-cuu-san")
@@ -195,20 +222,20 @@ public class DashboardController {
 
             if (khachHang == null) {
                 khachHang = new KhachHang();
-                // Chuẩn độ dài 9 chữ số ngẫu nhiên (dưới 10 ký tự)
-                String cccdRandom = String.valueOf((long) (Math.random() * 900000000L + 100000000L));
-                khachHang.setCccdCmt(cccdRandom);
-                khachHang.setHoTendem("");
+                setFullCustomerName(khachHang, (hoTenKhach != null && !hoTenKhach.isEmpty()) ? hoTenKhach : "Khách " + soDienThoai);
+                
+                // Giữ nguyên CCCD không giới hạn độ dài
+                String uniqueCccd = generateUniqueCccd(khachHangRepository, null, soDienThoai);
+                khachHang.setCccdCmt(uniqueCccd);
                 khachHang.setTenDoiBong("FC " + soDienThoai);
-                khachHang.setTen((hoTenKhach != null && !hoTenKhach.isEmpty()) ? hoTenKhach : "Khách " + soDienThoai);
                 khachHang.setSoDienThoai(soDienThoai);
                 khachHang.setUsername(soDienThoai);
                 khachHang.setPassword("123456");
+                khachHang.setDiaChi("");
                 khachHang.setDiemUyTin(100);
                 khachHang = khachHangRepository.save(khachHang);
             }
 
-            // Đồng bộ ngay với Session trình duyệt
             session.setAttribute("userRole", "USER");
             session.setAttribute("currentKhachHang", khachHang);
 
@@ -241,7 +268,6 @@ public class DashboardController {
             return "redirect:/login";
         }
 
-        // Lấy thông tin mới nhất từ Database phòng trường hợp vừa được cập nhật
         khachHangRepository.findAll().stream()
                 .filter(k -> khach.getSoDienThoai().equals(k.getSoDienThoai()))
                 .findFirst()
@@ -249,7 +275,6 @@ public class DashboardController {
 
         KhachHang currentKhach = (KhachHang) session.getAttribute("currentKhachHang");
 
-        // Sắp xếp các lượt đặt sân mới nhất (#DS lớn nhất) lên trên đầu bảng cá nhân
         List<LuotDatSan> dsDat = luotDatSanRepository.findAll().stream()
                 .filter(l -> l.getKhachHang() != null && currentKhach.getSoDienThoai().equals(l.getKhachHang().getSoDienThoai()))
                 .sorted((a, b) -> Long.compare(b.getMaLuotDat(), a.getMaLuotDat()))
@@ -283,13 +308,10 @@ public class DashboardController {
 
     @GetMapping("/admin")
     public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
-        // Lấy danh sách toàn bộ khách hàng trong CSDL
         model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
         model.addAttribute("danhSachSan", sanBongRepository.findAll());
         model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
         model.addAttribute("danhSachDichVu", dichVuRepository.findAll());
-        
-        // Sắp xếp các lượt đặt sân mới nhất (#DS lớn nhất) lên đầu tiên
         model.addAttribute("danhSachDatSan", luotDatSanRepository.findAllByOrderByMaLuotDatDesc());
 
         model.addAttribute("khachHangMoi", new KhachHang());
