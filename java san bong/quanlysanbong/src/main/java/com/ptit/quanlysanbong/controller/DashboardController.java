@@ -42,7 +42,7 @@ public class DashboardController {
         }
     }
 
-    // TẠO SỐ CCCD DUY NHẤT VÀ KHÔNG GIỚI HẠN ĐỘ DÀI KÝ TỰ (BỎ CẮT CHUỖI 10 SỐ)
+    // TẠO SỐ CCCD DUY NHẤT VÀ KHÔNG GIỚI HẠN ĐỘ DÀI KÝ TỰ (ĐẢM BẢO LƯU THÀNH CÔNG MYSQL)
     private String generateUniqueCccd(KhachHangRepository repo, String inputCccd, String phone) {
         String cccd = inputCccd;
         if (cccd == null || cccd.trim().isEmpty()) {
@@ -50,7 +50,6 @@ public class DashboardController {
         }
         cccd = cccd.trim();
 
-        // NẾU SỐ CCCD ĐÃ TỒN TẠI TRONG CSDL, TỰ ĐỘNG THÊM HẬU TỐ ĐỂ KHÔNG BỊ LỖI TRÙNG KHÓA CHÍNH (PRIMARY KEY)
         String baseCccd = cccd;
         int count = 1;
         while (repo.existsById(cccd)) {
@@ -113,15 +112,11 @@ public class DashboardController {
         try {
             setFullCustomerName(khachHang, khachHang.getTen());
 
-            // GIỮ NGUYÊN SỐ CCCD KHÔNG GIỚI HẠN ĐỘ DÀI & ĐẢM BẢO TÍNH DUY NHẤT TRONG CSDL
             String uniqueCccd = generateUniqueCccd(khachHangRepository, khachHang.getCccdCmt(), khachHang.getSoDienThoai());
             khachHang.setCccdCmt(uniqueCccd);
 
             if (khachHang.getTenDoiBong() == null || khachHang.getTenDoiBong().trim().isEmpty()) {
                 khachHang.setTenDoiBong("FC " + khachHang.getSoDienThoai());
-            }
-            if (khachHang.getDiaChi() == null) {
-                khachHang.setDiaChi("");
             }
             if (khachHang.getDiemUyTin() == null) {
                 khachHang.setDiemUyTin(100);
@@ -130,7 +125,6 @@ public class DashboardController {
             khachHang.setUsername(khachHang.getSoDienThoai());
             khachHang.setPassword(matKhau);
             
-            // Lưu bản ghi khách hàng mới vào MySQL
             khachHangRepository.save(khachHang);
 
             redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Hãy đăng nhập bằng SĐT: " + khachHang.getSoDienThoai());
@@ -224,14 +218,12 @@ public class DashboardController {
                 khachHang = new KhachHang();
                 setFullCustomerName(khachHang, (hoTenKhach != null && !hoTenKhach.isEmpty()) ? hoTenKhach : "Khách " + soDienThoai);
                 
-                // Giữ nguyên CCCD không giới hạn độ dài
                 String uniqueCccd = generateUniqueCccd(khachHangRepository, null, soDienThoai);
                 khachHang.setCccdCmt(uniqueCccd);
                 khachHang.setTenDoiBong("FC " + soDienThoai);
                 khachHang.setSoDienThoai(soDienThoai);
                 khachHang.setUsername(soDienThoai);
                 khachHang.setPassword("123456");
-                khachHang.setDiaChi("");
                 khachHang.setDiemUyTin(100);
                 khachHang = khachHangRepository.save(khachHang);
             }
@@ -306,24 +298,10 @@ public class DashboardController {
         return "redirect:/profile";
     }
 
+    // TRANG ADMIN RÚT GỌN TẬP TRUNG DUY NHẤT VÀO QUẢN LÝ ĐẶT SÂN
     @GetMapping("/admin")
-    public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
-        model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
-        model.addAttribute("danhSachSan", sanBongRepository.findAll());
-        model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
-        model.addAttribute("danhSachDichVu", dichVuRepository.findAll());
+    public String adminDashboard(Model model) {
         model.addAttribute("danhSachDatSan", luotDatSanRepository.findAllByOrderByMaLuotDatDesc());
-
-        model.addAttribute("khachHangMoi", new KhachHang());
-        model.addAttribute("luotDatMoi", new LuotDatSan());
-
-        if (cccdSelect != null && !cccdSelect.isEmpty()) {
-            khachHangRepository.findById(cccdSelect).ifPresent(kh -> {
-                model.addAttribute("khachHangChon", kh);
-                model.addAttribute("lichSuDatCuaKhach", luotDatSanRepository.findByKhachHang_CccdCmtOrderByNgayDatDesc(cccdSelect));
-            });
-        }
-
         return "admin-dashboard";
     }
 
