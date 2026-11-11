@@ -244,25 +244,27 @@ public class DashboardController {
 
     // TRANG ADMIN DASHBOARD
     @GetMapping("/admin")
-    public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
-        model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
-        model.addAttribute("danhSachSan", sanBongRepository.findAll());
-        model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
-        model.addAttribute("danhSachDichVu", dichVuRepository.findAll());
-        model.addAttribute("danhSachDatSan", luotDatSanRepository.findAll());
+public String adminDashboard(@RequestParam(name = "cccdSelect", required = false) String cccdSelect, Model model) {
+    model.addAttribute("danhSachKhachHang", khachHangRepository.findAll());
+    model.addAttribute("danhSachSan", sanBongRepository.findAll());
+    model.addAttribute("danhSachNhanVien", nhanVienRepository.findAll());
+    model.addAttribute("danhSachDichVu", dichVuRepository.findAll());
+    
+    // ĐÃ SỬA: Sắp xếp ngày & giờ đá từ sớm nhất đến muộn nhất (lên đầu)
+    model.addAttribute("danhSachDatSan", luotDatSanRepository.findAllByOrderByNgayDatAscGioBatDauAsc());
 
-        model.addAttribute("khachHangMoi", new KhachHang());
-        model.addAttribute("luotDatMoi", new LuotDatSan());
+    model.addAttribute("khachHangMoi", new KhachHang());
+    model.addAttribute("luotDatMoi", new LuotDatSan());
 
-        if (cccdSelect != null && !cccdSelect.isEmpty()) {
-            khachHangRepository.findById(cccdSelect).ifPresent(kh -> {
-                model.addAttribute("khachHangChon", kh);
-                model.addAttribute("lichSuDatCuaKhach", luotDatSanRepository.findByKhachHang_CccdCmtOrderByNgayDatDesc(cccdSelect));
-            });
-        }
-
-        return "admin-dashboard";
+    if (cccdSelect != null && !cccdSelect.isEmpty()) {
+        khachHangRepository.findById(cccdSelect).ifPresent(kh -> {
+            model.addAttribute("khachHangChon", kh);
+            model.addAttribute("lichSuDatCuaKhach", luotDatSanRepository.findByKhachHang_CccdCmtOrderByNgayDatDesc(cccdSelect));
+        });
     }
+
+    return "admin-dashboard";
+}
 
     // XÁC NHẬN THANH TOÁN CHO CHỦ SÂN
     @PostMapping("/admin/xac-nhan")
