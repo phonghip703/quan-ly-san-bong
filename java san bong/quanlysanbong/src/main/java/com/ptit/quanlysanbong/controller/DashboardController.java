@@ -204,21 +204,23 @@ public class DashboardController {
     }
 
     @GetMapping("/profile")
-    public String userProfile(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        KhachHang khach = (KhachHang) session.getAttribute("currentKhachHang");
-        if (khach == null) {
-            redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để xem thông tin cá nhân!");
-            return "redirect:/login";
-        }
-
-        List<LuotDatSan> dsDat = luotDatSanRepository.findAll().stream()
-                .filter(l -> l.getKhachHang() != null && khach.getSoDienThoai().equals(l.getKhachHang().getSoDienThoai()))
-                .toList();
-
-        model.addAttribute("khachHang", khach);
-        model.addAttribute("danhSachDaDat", dsDat);
-        return "profile";
+public String userProfile(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    KhachHang khach = (KhachHang) session.getAttribute("currentKhachHang");
+    if (khach == null) {
+        redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để xem thông tin cá nhân!");
+        return "redirect:/login";
     }
+
+    // ĐÃ SỬA: SẮP XẾP LƯỢT ĐẶT MỚI NHẤT (#DS LỚN NHẤT) LÊN ĐẦU BẢNG
+    List<LuotDatSan> dsDat = luotDatSanRepository.findAll().stream()
+            .filter(l -> l.getKhachHang() != null && khach.getSoDienThoai().equals(l.getKhachHang().getSoDienThoai()))
+            .sorted((a, b) -> Long.compare(b.getMaLuotDat(), a.getMaLuotDat()))
+            .toList();
+
+    model.addAttribute("khachHang", khach);
+    model.addAttribute("danhSachDaDat", dsDat);
+    return "profile";
+}
 
     // XỬ LÝ HỦY ĐẶT SÂN CHO KHÁCH HÀNG
     @PostMapping("/huy-dat-san")
